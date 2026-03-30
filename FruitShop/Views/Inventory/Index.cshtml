@@ -1,0 +1,96 @@
+@model IEnumerable<FruitShop.Models.Entities.InventoryLog>
+@{
+    ViewData["Title"] = "Quản lý Tồn kho";
+    Layout = "_Layout";
+}
+@section Breadcrumb {
+    <li class="breadcrumb-item active">Tồn kho</li>
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="page-title"><i class="fas fa-boxes me-2 text-primary"></i>Quản lý Tồn kho</h4>
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#adjustModal">
+        <i class="fas fa-plus me-2"></i>Điều chỉnh tồn kho
+    </button>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-header bg-white">
+        <h6 class="mb-0"><i class="fas fa-history me-2"></i>Lịch sử điều chỉnh (50 log gần nhất)</h6>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0 align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Ngày giờ</th>
+                        <th>Sản phẩm</th>
+                        <th>Nhân viên</th>
+                        <th class="text-center">Thay đổi</th>
+                        <th>Lý do</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.Any())
+                    {
+                        <tr><td colspan="5" class="text-center text-muted py-4">Chưa có lịch sử nhập/xuất kho</td></tr>
+                    }
+                    @foreach (var log in Model)
+                    {
+                        <tr>
+                            <td>@log.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
+                            <td class="fw-bold">@log.FruitName</td>
+                            <td>@log.StaffName</td>
+                            <td class="text-center">
+                                @if (log.QuantityChange > 0)
+                                {
+                                    <span class="badge bg-success">+@log.QuantityChange</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-danger">@log.QuantityChange</span>
+                                }
+                            </td>
+                            <td><span class="text-muted small">@log.Reason</span></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Điều chỉnh -->
+<div class="modal fade" id="adjustModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form asp-action="AdjustStock" method="post">
+                @Html.AntiForgeryToken()
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-boxes me-2 text-primary"></i>Điều chỉnh Nhập/Xuất kho</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Sản phẩm</label>
+                        <select name="fruitId" class="form-select" asp-items="ViewBag.Fruits" required>
+                            <option value="">-- Chọn trái cây --</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Số lượng thay đổi (dương để Nhập, âm để Xuất/Hư hỏng)</label>
+                        <input type="number" name="quantityChange" class="form-control" required />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Lý do</label>
+                        <textarea name="reason" class="form-control" rows="2" placeholder="Ví dụ: Nhập hàng mới, Trái cây bị hỏng..." required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                    <button type="submit" class="btn btn-primary">Xác nhận</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

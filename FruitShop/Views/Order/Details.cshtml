@@ -1,0 +1,165 @@
+@model FruitShop.Models.Entities.Order
+@{
+    var role = ViewBag.UserRole?.ToString() ?? "Customer";
+    ViewData["Title"] = $"Đơn hàng #{Model.OrderId}";
+    Layout = role is "Admin" or "Staff" ? "_Layout" : "_LayoutUser";
+    var qrData = ViewBag.QrData?.ToString() ?? "";
+}
+@if (role is "Admin" or "Staff")
+{
+    @section Breadcrumb {
+        <li class="breadcrumb-item"><a asp-action="Index">Đơn hàng</a></li>
+        <li class="breadcrumb-item active">#@Model.OrderId</li>
+    }
+}
+
+<div class="container-fluid py-3 py-lg-4">
+    <div class="row g-4">
+        <!-- Chi tiết đơn hàng -->
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-receipt me-2"></i>Đơn hàng #@Model.OrderId</h5>
+                    <span class="badge bg-@Model.GetStatusBadge() fs-6">@Model.GetStatusText()</span>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-sm-6">
+                            <small class="text-muted d-block">Khách hàng</small>
+                            <strong>@Model.CustomerName</strong>
+                        </div>
+                        <div class="col-sm-6">
+                            <small class="text-muted d-block">Ngày đặt</small>
+                            <strong>@Model.OrderDate.ToString("dd/MM/yyyy HH:mm")</strong>
+                        </div>
+                    </div>
+                    @if (!string.IsNullOrEmpty(Model.ShippingAddress))
+                    {
+                        <div class="mb-3">
+                            <small class="text-muted d-block">Địa chỉ giao hàng</small>
+                            <strong><i class="fas fa-map-marker-alt me-1 text-success"></i>@Model.ShippingAddress</strong>
+                        </div>
+                    }
+                    @if (!string.IsNullOrEmpty(Model.Note))
+                    {
+                        <div class="mb-3">
+                            <small class="text-muted d-block">Ghi chú</small>
+                            <em>@Model.Note</em>
+                        </div>
+                    }
+                </div>
+
+                <!-- Bảng chi tiết sản phẩm -->
+                <div class="table-responsive">
+                    <table class="table align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Sản phẩm</th>
+                                <th class="text-center">Số lượng</th>
+                                <th class="text-end">Đơn giá</th>
+                                <th class="text-end">Thành tiền</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var detail in Model.OrderDetails)
+                            {
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <img src="~/images/fruits/@(detail.ImageUrl ?? "default.jpg")"
+                                                 class="rounded me-2" style="width:45px;height:45px;object-fit:cover;"
+                                                 onerror="this.src='/images/fruits/default.jpg'" />
+                                            <span>@detail.FruitName</span>
+                                        </div>
+                                    </td>
+                                    <td class="text-center">@detail.Quantity @detail.Unit</td>
+                                    <td class="text-end">@detail.UnitPrice.ToString("N0")đ</td>
+                                    <td class="text-end fw-semibold text-success">@detail.Subtotal.ToString("N0")đ</td>
+                                </tr>
+                            }
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td colspan="3" class="text-end fw-bold fs-5">Tổng cộng:</td>
+                                <td class="text-end fw-bold fs-5 text-success">@Model.TotalAmount.ToString("N0")đ</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- SIDEBAR: QR Code + Cập nhật trạng thái -->
+        <div class="col-lg-4">
+            <!-- QR CODE - Tính năng sáng tạo -->
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="fas fa-qrcode me-2"></i>QR Code đơn hàng</h6>
+                </div>
+                <div class="card-body text-center">
+                    <div id="qrCodeContainer"></div>
+                    <small class="text-muted mt-2 d-block">Quét để xem thông tin đơn hàng</small>
+                </div>
+            </div>
+
+            @if (role is "Admin" or "Staff")
+            {
+                <div class="card">
+                    <div class="card-header">
+                        <h6 class="mb-0"><i class="fas fa-cog me-2"></i>Cập nhật trạng thái</h6>
+                    </div>
+                    <div class="card-body">
+                        <form asp-action="UpdateStatus" method="post">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@Model.OrderId" />
+                            <div class="mb-3">
+                                <select name="status" class="form-select">
+                                    @foreach (var s in new[] { "Pending","Confirmed","Shipping","Delivered","Cancelled" })
+                                    {
+                                        var sText = s switch {
+                                            "Pending"   => "⏳ Chờ xác nhận",
+                                            "Confirmed" => "✅ Đã xác nhận",
+                                            "Shipping"  => "🚚 Đang giao",
+                                            "Delivered" => "✔️ Đã giao",
+                                            "Cancelled" => "❌ Đã huỷ",
+                                            _           => s
+                                        };
+                                        if (Model.Status == s) { <option value="@s" selected>@sText</option> }
+                                        else                    { <option value="@s">@sText</option> }
+                                    }
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="fas fa-save me-2"></i>Cập nhật
+                            </button>
+                        </form>
+                        <a asp-action="Index" class="btn btn-outline-secondary w-100 mt-2">
+                            <i class="fas fa-arrow-left me-2"></i>Danh sách đơn
+                        </a>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <a asp-action="History" class="btn btn-outline-secondary w-100">
+                    <i class="fas fa-arrow-left me-2"></i>Về lịch sử đơn hàng
+                </a>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <!-- QRCode.js để tạo QR Code phía client -->
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+    <script>
+        new QRCode(document.getElementById("qrCodeContainer"), {
+            text: "@Html.Raw(qrData)",
+            width: 180,
+            height: 180,
+            colorDark: "#1B5E20",
+            colorLight: "#ffffff",
+            correctLevel: QRCode.CorrectLevel.M
+        });
+    </script>
+}

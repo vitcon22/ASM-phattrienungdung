@@ -1,0 +1,141 @@
+@model FruitShop.Models.ViewModels.OrderViewModel
+@{
+    ViewData["Title"] = "Xác nhận đơn hàng";
+    Layout = "_LayoutUser";
+}
+
+<div class="container py-4">
+    <h3 class="mb-4"><i class="fas fa-credit-card me-2 text-success"></i>Xác nhận đơn hàng</h3>
+
+    <div class="row">
+        <!-- Form thông tin giao hàng -->
+        <div class="col-lg-7 mb-4">
+            <div class="card">
+                <div class="card-header"><h6 class="mb-0"><i class="fas fa-map-marker-alt me-2"></i>Thông tin giao hàng</h6></div>
+                <div class="card-body">
+                    <form asp-action="Checkout" method="post" id="checkoutForm">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" asp-for="CouponCode" id="hiddenCouponCode" />
+                        <div class="mb-3">
+                            <label asp-for="ShippingAddress" class="form-label fw-semibold">
+                                Địa chỉ giao hàng <span class="text-danger">*</span>
+                            </label>
+                            <textarea asp-for="ShippingAddress" class="form-control" rows="3"
+                                      placeholder="Số nhà, đường, phường/xã, quận/huyện, tỉnh/thành..."></textarea>
+                            <span asp-validation-for="ShippingAddress" class="text-danger small"></span>
+                        </div>
+                        <div class="mb-4">
+                            <label asp-for="Note" class="form-label fw-semibold">Ghi chú đơn hàng</label>
+                            <textarea asp-for="Note" class="form-control" rows="2"
+                                      placeholder="VD: Giao giờ hành chính, gọi trước khi giao..."></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-success btn-lg w-100" id="btnOrder">
+                            <i class="fas fa-check-circle me-2"></i>Đặt hàng ngay
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tóm tắt đơn hàng -->
+        <div class="col-lg-5">
+            <div class="card">
+                <div class="card-header"><h6 class="mb-0"><i class="fas fa-list me-2"></i>Đơn hàng của bạn</h6></div>
+                <div class="card-body p-0">
+                    <table class="table table-sm mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Sản phẩm</th>
+                                <th class="text-center">SL</th>
+                                <th class="text-end">T.Tiền</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model.CartItems)
+                            {
+                                <tr>
+                                    <td>
+                                        <small>@item.FruitName</small>
+                                        <div><small class="text-muted">@item.UnitPrice.ToString("N0")đ/@item.Unit</small></div>
+                                    </td>
+                                    <td class="text-center">@item.Quantity</td>
+                                    <td class="text-end text-success fw-semibold small">@item.Subtotal.ToString("N0")đ</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+
+                    <div class="px-3 py-3 border-top bg-light">
+                        <div class="input-group mb-2">
+                            <input type="text" id="couponCodeInput" class="form-control" placeholder="Nhập mã giảm giá" style="text-transform:uppercase" />
+                            <button type="button" class="btn btn-outline-success px-4" id="btnApplyCoupon">Áp dụng</button>
+                        </div>
+                        <div id="couponMessage" class="small mb-2"></div>
+                        <hr class="my-2" />
+                        
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">Tạm tính:</span>
+                            <span class="fw-semibold">@Model.TotalAmount.ToString("N0")đ</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2 text-danger d-none" id="discountRow">
+                            <span>Giảm giá (<span id="discountPercentLabel"></span>%):</span>
+                            <span class="fw-semibold">-<span id="discountAmountLabel"></span>đ</span>
+                        </div>
+                        <div class="d-flex justify-content-between fw-bold fs-5 mt-3 pt-2 border-top">
+                            <span>Tổng cộng:</span>
+                            <span class="text-success" id="finalAmountLabel">@Model.TotalAmount.ToString("N0")đ</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <a asp-action="Cart" class="btn btn-outline-secondary w-100 mt-2">
+                <i class="fas fa-arrow-left me-2"></i>Quay lại giỏ hàng
+            </a>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScripts" />
+    <script>
+        document.getElementById('checkoutForm').addEventListener('submit', function () {
+            document.getElementById('btnOrder').disabled = true;
+            document.getElementById('btnOrder').innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Đang xử lý...';
+        });
+
+        document.getElementById('btnApplyCoupon').addEventListener('click', function() {
+            var code = document.getElementById('couponCodeInput').value;
+            var msg = document.getElementById('couponMessage');
+            
+            if(!code) {
+                msg.innerHTML = '<span class="text-danger">Vui lòng nhập mã</span>';
+                return;
+            }
+
+            fetch('/Order/ApplyCoupon?code=' + encodeURIComponent(code), {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: '__RequestVerificationToken=' + document.querySelector('input[name="__RequestVerificationToken"]').value
+            })
+            .then(res => res.json())
+            .then(data => {
+                if(data.success) {
+                    msg.innerHTML = '<span class="text-success"><i class="fas fa-check-circle me-1"></i>Áp dụng thành công!</span>';
+                    document.getElementById('discountRow').classList.remove('d-none');
+                    document.getElementById('discountPercentLabel').innerText = data.percent;
+                    document.getElementById('discountAmountLabel').innerText = new Intl.NumberFormat('vi-VN').format(data.discountAmount);
+                    document.getElementById('finalAmountLabel').innerText = new Intl.NumberFormat('vi-VN').format(data.finalAmount) + 'đ';
+                    document.getElementById('hiddenCouponCode').value = data.code;
+                    document.getElementById('couponCodeInput').readOnly = true;
+                    this.disabled = true;
+                } else {
+                    msg.innerHTML = '<span class="text-danger"><i class="fas fa-times-circle me-1"></i>' + data.message + '</span>';
+                    document.getElementById('hiddenCouponCode').value = '';
+                }
+            })
+            .catch(err => {
+                msg.innerHTML = '<span class="text-danger">Lỗi kết nối</span>';
+            });
+        });
+    </script>
+}

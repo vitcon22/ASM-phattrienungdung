@@ -1,0 +1,288 @@
+@model List<FruitShop.Models.Entities.Fruit>
+@{
+    ViewData["Title"] = "FruitShop - Cửa Hàng Trái Cây Tươi Ngon";
+    Layout = "_LayoutUser";
+    var featuredFruits = Model.Take(4).ToList();
+    var allFruits      = Model;
+}
+
+<!-- HERO BANNER -->
+<section class="hero-section">
+    <div class="hero-overlay">
+        <div class="container">
+            <div class="hero-content text-center text-white">
+                <div class="hero-badge mb-3">🌿 Tươi ngon mỗi ngày</div>
+                <h1 class="hero-title">Trái Cây Sạch &amp; Tươi Ngon</h1>
+                <p class="hero-subtitle">Hơn 100+ loại trái cây nhập khẩu &amp; nội địa chất lượng cao — Giao hàng tận nơi</p>
+                <div class="hero-search mx-auto">
+                    <form asp-controller="Home" asp-action="Index" method="get">
+                        <div class="input-group input-group-lg">
+                            <input type="text" name="keyword" class="form-control hero-search-input"
+                                   placeholder="Tìm kiếm: táo, cam, nho..." value="@ViewBag.Keyword"
+                                   id="searchInput" autocomplete="off" />
+                            <button class="btn btn-warning px-4 fw-semibold" type="submit">
+                                <i class="fas fa-search me-2"></i>Tìm kiếm
+                            </button>
+                        </div>
+                        <div class="autocomplete-dropdown" id="autocompleteList"></div>
+                    </form>
+                </div>
+                <!-- Quick stats -->
+                <div class="hero-stats mt-4">
+                    <div class="hero-stat-item">
+                        <strong>100+</strong>
+                        <span>Sản phẩm</span>
+                    </div>
+                    <div class="hero-stat-divider"></div>
+                    <div class="hero-stat-item">
+                        <strong>5★</strong>
+                        <span>Đánh giá</span>
+                    </div>
+                    <div class="hero-stat-divider"></div>
+                    <div class="hero-stat-item">
+                        <strong>24h</strong>
+                        <span>Giao hàng</span>
+                    </div>
+                    <div class="hero-stat-divider"></div>
+                    <div class="hero-stat-item">
+                        <strong>1000+</strong>
+                        <span>Khách hàng</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CATEGORY QUICK LINKS -->
+<section class="category-strip py-3" style="background:#fff; border-bottom:1px solid #eee;">
+    <div class="container">
+        <div class="d-flex gap-2 flex-wrap justify-content-center">
+            <a asp-controller="Home" asp-action="Index"
+               class="category-chip @(ViewBag.CategoryId == null ? "active" : "")">
+                <i class="fas fa-border-all me-1"></i>Tất cả
+            </a>
+            @if (ViewBag.Categories != null)
+            {
+                @foreach (var cat in (IEnumerable<FruitShop.Models.Entities.Category>)ViewBag.Categories)
+                {
+                    <a asp-controller="Home" asp-action="Index"
+                       asp-route-categoryId="@cat.CategoryId"
+                       class="category-chip @(ViewBag.CategoryId?.ToString() == cat.CategoryId.ToString() ? "active" : "")">
+                        @cat.CategoryName
+                        <span class="ms-1 opacity-75">(@cat.FruitCount)</span>
+                    </a>
+                }
+            }
+        </div>
+    </div>
+</section>
+
+<div class="container py-4">
+
+    <!-- SEARCH RESULT INFO -->
+    @if (!string.IsNullOrEmpty(ViewBag.Keyword?.ToString()))
+    {
+        <div class="alert alert-info d-flex align-items-center mb-4">
+            <i class="fas fa-search me-2 fs-5"></i>
+            <div>
+                Kết quả cho "<strong>@ViewBag.Keyword</strong>": <strong>@Model.Count</strong> sản phẩm
+                <a asp-controller="Home" asp-action="Index" class="ms-2 btn btn-sm btn-outline-secondary">
+                    <i class="fas fa-times me-1"></i>Xóa bộ lọc
+                </a>
+            </div>
+        </div>
+    }
+
+    <!-- FEATURED SECTION (chỉ hiển thị khi không tìm kiếm và không lọc) -->
+    @if (string.IsNullOrEmpty(ViewBag.Keyword?.ToString()) && ViewBag.CategoryId == null && featuredFruits.Any())
+    {
+        <div class="mb-5">
+            <div class="section-header mb-3">
+                <h5 class="section-title"><i class="fas fa-fire text-danger me-2"></i>Bán chạy hôm nay</h5>
+                <a asp-controller="Home" asp-action="Index" class="see-all-link">Xem tất cả →</a>
+            </div>
+            <div class="row g-3">
+                @foreach (var fruit in featuredFruits)
+                {
+                    <div class="col-sm-6 col-lg-3">
+                        <div class="fruit-card featured">
+                            <a asp-controller="Fruit" asp-action="Details" asp-route-id="@fruit.FruitId">
+                                <img src="~/images/fruits/@fruit.GetImageUrl()"
+                                     alt="@fruit.FruitName"
+                                     class="fruit-card-img"
+                                     onerror="this.src='/images/fruits/default.jpg'" />
+                                <span class="hot-badge">🔥 Hot</span>
+                            </a>
+                            <div class="fruit-card-body">
+                                <div class="fruit-category-tag">@fruit.CategoryName</div>
+                                <h6 class="fruit-name mt-1">
+                                    <a asp-controller="Fruit" asp-action="Details" asp-route-id="@fruit.FruitId"
+                                       class="text-decoration-none text-dark">@fruit.FruitName</a>
+                                </h6>
+                                @if (!string.IsNullOrEmpty(fruit.Origin))
+                                {
+                                    <small class="text-muted"><i class="fas fa-map-marker-alt me-1 text-success"></i>@fruit.Origin</small>
+                                }
+                                <div class="d-flex align-items-center justify-content-between mt-2">
+                                    <span class="text-success fw-bold fs-6">@fruit.Price.ToString("N0")đ<small class="text-muted fw-normal">/@fruit.Unit</small></span>
+                                    <span class="fruit-stock-badge @(fruit.StockQuantity < 20 ? "text-danger" : "text-muted")">
+                                        Còn @fruit.StockQuantity
+                                    </span>
+                                </div>
+                                <div class="d-flex gap-2 mt-2">
+                                    <a asp-controller="Fruit" asp-action="Details" asp-route-id="@fruit.FruitId"
+                                       class="btn btn-outline-success btn-sm flex-fill">
+                                        <i class="fas fa-eye me-1"></i>Xem
+                                    </a>
+                                    @if (fruit.InStock)
+                                    {
+                                        <form asp-controller="Order" asp-action="AddToCart" method="post" class="flex-fill">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="fruitId" value="@fruit.FruitId" />
+                                            <input type="hidden" name="quantity" value="1" />
+                                            <button type="submit" class="btn btn-success btn-sm w-100">
+                                                <i class="fas fa-cart-plus me-1"></i>Thêm
+                                            </button>
+                                        </form>
+                                    }
+                                    else
+                                    {
+                                        <button class="btn btn-secondary btn-sm flex-fill" disabled>Hết hàng</button>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+        <hr class="mb-4" />
+    }
+
+    <!-- ALL PRODUCTS SECTION -->
+    @if (allFruits.Any())
+    {
+        <div>
+            <div class="section-header mb-3">
+                <h5 class="section-title">
+                    <i class="fas fa-th-large text-success me-2"></i>
+                    @(ViewBag.CategoryId != null ? "Sản phẩm theo danh mục" : "Tất cả sản phẩm")
+                </h5>
+                <span class="text-muted small">@allFruits.Count sản phẩm</span>
+            </div>
+
+            <div class="row g-3">
+                @foreach (var fruit in allFruits)
+                {
+                    <div class="col-6 col-sm-4 col-md-3 col-xl-2half">
+                        <div class="fruit-card">
+                            <div class="fruit-card-img-wrap">
+                                <a asp-controller="Fruit" asp-action="Details" asp-route-id="@fruit.FruitId">
+                                    <img src="~/images/fruits/@fruit.GetImageUrl()"
+                                         alt="@fruit.FruitName"
+                                         class="fruit-card-img"
+                                         onerror="this.src='/images/fruits/default.jpg'" />
+                                </a>
+                                @if (!fruit.InStock)
+                                {
+                                    <div class="sold-out-overlay">
+                                        <span>Hết hàng</span>
+                                    </div>
+                                }
+                                @if (fruit.StockQuantity < 10 && fruit.InStock)
+                                {
+                                    <span class="low-stock-badge">Sắp hết</span>
+                                }
+                            </div>
+                            <div class="fruit-card-body">
+                                <div class="fruit-category-tag">@fruit.CategoryName</div>
+                                <h6 class="fruit-name">
+                                    <a asp-controller="Fruit" asp-action="Details" asp-route-id="@fruit.FruitId"
+                                       class="text-decoration-none text-dark">@fruit.FruitName</a>
+                                </h6>
+                                @if (!string.IsNullOrEmpty(fruit.Origin))
+                                {
+                                    <small class="text-muted d-block mb-1">
+                                        <i class="fas fa-map-marker-alt me-1 text-success" style="font-size:.7rem"></i>@fruit.Origin
+                                    </small>
+                                }
+                                <div class="text-success fw-bold">@fruit.Price.ToString("N0")đ<small class="text-muted fw-normal">/@fruit.Unit</small></div>
+                                <div class="d-flex gap-1 mt-2">
+                                    <a asp-controller="Fruit" asp-action="Details" asp-route-id="@fruit.FruitId"
+                                       class="btn btn-outline-success btn-xs flex-fill">Xem</a>
+                                    @if (fruit.InStock)
+                                    {
+                                        <form asp-controller="Order" asp-action="AddToCart" method="post">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="fruitId" value="@fruit.FruitId" />
+                                            <input type="hidden" name="quantity" value="1" />
+                                            <button type="submit" class="btn btn-success btn-xs" title="Thêm vào giỏ">
+                                                <i class="fas fa-cart-plus"></i>
+                                            </button>
+                                        </form>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="text-center py-5">
+            <i class="fas fa-search fa-4x text-muted mb-3 d-block"></i>
+            <h5 class="text-muted">Không tìm thấy sản phẩm phù hợp</h5>
+            <a asp-controller="Home" asp-action="Index" class="btn btn-success mt-3">
+                <i class="fas fa-home me-2"></i>Về trang chủ
+            </a>
+        </div>
+    }
+
+    <!-- WHY US banner -->
+    @if (string.IsNullOrEmpty(ViewBag.Keyword?.ToString()) && ViewBag.CategoryId == null)
+    {
+        <div class="why-us-section mt-5 py-4">
+            <h5 class="text-center fw-bold mb-4">Tại sao chọn FruitShop?</h5>
+            <div class="row g-4 text-center">
+                <div class="col-6 col-md-3">
+                    <div class="why-item">
+                        <div class="why-icon"><i class="fas fa-leaf"></i></div>
+                        <h6>100% Tươi ngon</h6>
+                        <p class="small text-muted">Nhập hàng hàng ngày, đảm bảo độ tươi ngon tuyệt đối</p>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="why-item">
+                        <div class="why-icon"><i class="fas fa-truck"></i></div>
+                        <h6>Giao hàng nhanh</h6>
+                        <p class="small text-muted">Giao trong vòng 24h, miễn phí với đơn từ 200.000đ</p>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="why-item">
+                        <div class="why-icon"><i class="fas fa-shield-alt"></i></div>
+                        <h6>Đảm bảo chất lượng</h6>
+                        <p class="small text-muted">Hoàn tiền 100% nếu sản phẩm không đúng chất lượng</p>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="why-item">
+                        <div class="why-icon"><i class="fas fa-headset"></i></div>
+                        <h6>Hỗ trợ 24/7</h6>
+                        <p class="small text-muted">Đội ngũ CSKH luôn sẵn sàng hỗ trợ bạn mọi lúc</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<!-- Compact Search Form (remove duplicate) trong layout -->
+@section Scripts {
+    <script>
+        // AutoComplete hook - gọi từ site.js
+    </script>
+}

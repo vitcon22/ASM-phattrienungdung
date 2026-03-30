@@ -1,0 +1,45 @@
+@model FruitShop.Models.Entities.Fruit
+@{
+    ViewData["Title"] = "Xóa trái cây";
+    Layout = "_Layout";
+}
+@section Breadcrumb {
+    <li class="breadcrumb-item"><a asp-action="Index">Trái cây</a></li>
+    <li class="breadcrumb-item active">Xóa</li>
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card border-danger">
+            <div class="card-header bg-danger text-white">
+                <h5 class="mb-0"><i class="fas fa-exclamation-triangle me-2"></i>Xác nhận xóa trái cây</h5>
+            </div>
+            <div class="card-body text-center py-4">
+                <img src="~/images/fruits/@Model.GetImageUrl()"
+                     class="rounded mb-3" style="width:100px;height:100px;object-fit:cover;"
+                     onerror="this.src='/images/fruits/default.jpg'" />
+                <h5>@Model.FruitName</h5>
+                <p class="text-muted">
+                    Danh mục: @Model.CategoryName | Giá: @Model.Price.ToString("N0")đ/@Model.Unit
+                </p>
+                <hr />
+                <p class="text-warning">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Hành động này sẽ ẩn sản phẩm (xóa mềm, không mất dữ liệu).
+                </p>
+                <form asp-action="Delete" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" value="@Model.FruitId" />
+                    <div class="d-flex gap-3 justify-content-center">
+                        <button type="submit" class="btn btn-danger px-4">
+                            <i class="fas fa-trash me-2"></i>Xác nhận xóa
+                        </button>
+                        <a asp-action="Index" class="btn btn-outline-secondary px-4">
+                            <i class="fas fa-arrow-left me-2"></i>Hủy
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

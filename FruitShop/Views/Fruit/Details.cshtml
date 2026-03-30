@@ -1,0 +1,255 @@
+@model FruitShop.Models.Entities.Fruit
+@{
+    ViewData["Title"] = Model.FruitName;
+    var isAdminOrStaff = ViewBag.UserRole?.ToString() is "Admin" or "Staff";
+    var isLoggedIn = (bool)(ViewBag.IsLoggedIn ?? false);
+    Layout = isAdminOrStaff ? "_Layout" : "_LayoutUser";
+}
+
+<div class="container py-4">
+    <div class="row g-4">
+        <div class="col-md-5">
+            <div class="position-relative">
+                <img src="~/images/fruits/@Model.GetImageUrl()"
+                     alt="@Model.FruitName"
+                     class="img-fluid rounded-3 shadow w-100"
+                     style="max-height:400px;object-fit:cover;"
+                     onerror="this.src='/images/fruits/default.jpg'" />
+                @if (!Model.InStock)
+                {
+                    <div class="position-absolute top-0 start-0 m-3">
+                        <span class="badge bg-danger fs-6">Hết hàng</span>
+                    </div>
+                }
+            </div>
+        </div>
+        <div class="col-md-7">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Trang chủ</a></li>
+                    <li class="breadcrumb-item"><a asp-controller="Fruit" asp-action="Index">Sản phẩm</a></li>
+                    <li class="breadcrumb-item active">@Model.FruitName</li>
+                </ol>
+            </nav>
+
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="badge bg-success">@Model.CategoryName</span>
+                @if (isLoggedIn)
+                {
+                    <button id="btnWishlist" class="btn btn-sm btn-outline-danger @(ViewBag.IsInWishlist ? "active" : "")" onclick="toggleWishlist(@Model.FruitId)">
+                        <i class="@(ViewBag.IsInWishlist ? "fas" : "far") fa-heart"></i>
+                        <span id="wishlistText">@(ViewBag.IsInWishlist ? "Đã lưu" : "Lưu yêu thích")</span>
+                    </button>
+                }
+            </div>
+            
+            <h2 class="fw-bold">@Model.FruitName</h2>
+            
+            <div class="d-flex align-items-center gap-2 mb-3">
+                <div class="text-warning small">
+                    @for (int i=1; i<=5; i++) {
+                        <i class="@(i <= Math.Round((double)ViewBag.AvgRating) ? "fas" : "far") fa-star"></i>
+                    }
+                </div>
+                <span class="text-muted small">
+                    (@ViewBag.AvgRating.ToString("0.0") / 5.0 - @ViewBag.ReviewCount đánh giá)
+                </span>
+            </div>
+
+            @if (!string.IsNullOrEmpty(Model.Origin))
+            {
+                <p class="text-muted"><i class="fas fa-map-marker-alt me-2 text-success"></i>Xuất xứ: <strong>@Model.Origin</strong></p>
+            }
+
+            <div class="price-display mb-3">
+                <span class="text-success fw-bold fs-3">@Model.Price.ToString("N0")đ</span>
+                <span class="text-muted ms-1">/ @Model.Unit</span>
+            </div>
+
+            <div class="mb-3">
+                <span class="me-3">
+                    <i class="fas fa-box me-1 text-success"></i>
+                    Tồn kho: <strong class="@(Model.StockQuantity < 10 ? "text-danger" : "text-success")">@Model.StockQuantity @Model.Unit</strong>
+                </span>
+            </div>
+
+            @if (!string.IsNullOrEmpty(Model.Description))
+            {
+                <div class="product-description mb-4">
+                    <h6>Mô tả sản phẩm</h6>
+                    <p class="text-muted">@Model.Description</p>
+                </div>
+            }
+
+            @if (isAdminOrStaff)
+            {
+                <div class="d-flex gap-2">
+                    <a asp-action="Edit" asp-route-id="@Model.FruitId" class="btn btn-primary">
+                        <i class="fas fa-edit me-2"></i>Sửa
+                    </a>
+                    <a asp-action="Delete" asp-route-id="@Model.FruitId" class="btn btn-outline-danger">
+                        <i class="fas fa-trash me-2"></i>Xóa
+                    </a>
+                </div>
+            }
+            else if (Model.InStock)
+            {
+                <form asp-controller="Order" asp-action="AddToCart" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="fruitId" value="@Model.FruitId" />
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        <label class="fw-semibold">Số lượng:</label>
+                        <div class="input-group" style="width:130px">
+                            <button type="button" class="btn btn-outline-secondary" onclick="changeQty(-1)">−</button>
+                            <input type="number" name="quantity" id="qty" class="form-control text-center" value="1" min="1" max="@Model.StockQuantity" />
+                            <button type="button" class="btn btn-outline-secondary" onclick="changeQty(1)">+</button>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-success btn-lg px-5">
+                        <i class="fas fa-cart-plus me-2"></i>Thêm vào giỏ hàng
+                    </button>
+                </form>
+            }
+            else if (!isLoggedIn)
+            {
+                <a asp-controller="Account" asp-action="Login" class="btn btn-outline-success">
+                    <i class="fas fa-sign-in-alt me-2"></i>Đăng nhập để đặt hàng
+                </a>
+            }
+        </div>
+    </div>
+    
+    <!-- Reviews Section -->
+    <hr class="my-5" />
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <h4 class="mb-4 d-flex align-items-center"><i class="fas fa-comments text-success me-2"></i>Đánh giá sản phẩm</h4>
+            
+            @if (isLoggedIn)
+            {
+                <div class="card shadow-sm mb-4 border-0 bg-light">
+                    <div class="card-body">
+                        <h6 class="card-title fw-bold">Viết đánh giá của bạn</h6>
+                        <form asp-controller="Review" asp-action="Submit" method="post">
+                            <input type="hidden" name="fruitId" value="@Model.FruitId" />
+                            <div class="mb-3">
+                                <label class="form-label text-muted small">Chất lượng (1-5 sao)</label>
+                                <div class="rating-stars mb-2" id="starRating">
+                                    <i class="far fa-star fs-4 text-warning" style="cursor:pointer" onclick="setRating(1)"></i>
+                                    <i class="far fa-star fs-4 text-warning" style="cursor:pointer" onclick="setRating(2)"></i>
+                                    <i class="far fa-star fs-4 text-warning" style="cursor:pointer" onclick="setRating(3)"></i>
+                                    <i class="far fa-star fs-4 text-warning" style="cursor:pointer" onclick="setRating(4)"></i>
+                                    <i class="far fa-star fs-4 text-warning" style="cursor:pointer" onclick="setRating(5)"></i>
+                                </div>
+                                <input type="hidden" name="rating" id="ratingValue" value="0" required />
+                            </div>
+                            <div class="mb-3">
+                                <textarea name="comment" class="form-control" rows="3" placeholder="Chia sẻ cảm nhận của bạn về độ tươi, vị ngon... (tuỳ chọn)"></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-success" id="btnSubmitReview" disabled>
+                                <i class="fas fa-paper-plane me-1"></i>Gửi đánh giá
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-info py-2">
+                    <i class="fas fa-info-circle me-2"></i>Vui lòng <a asp-controller="Account" asp-action="Login" class="alert-link">đăng nhập</a> để tham gia đánh giá.
+                </div>
+            }
+
+            <div class="reviews-list">
+                @if (ViewBag.Reviews == null || ((List<FruitShop.Models.Entities.Review>)ViewBag.Reviews).Count == 0)
+                {
+                    <p class="text-center text-muted py-4"><i class="far fa-comment-dots fs-1 d-block mb-3 text-light"></i>Chưa có đánh giá nào. Hãy là người đầu tiên!</p>
+                }
+                else
+                {
+                    foreach (var review in (List<FruitShop.Models.Entities.Review>)ViewBag.Reviews)
+                    {
+                        <div class="d-flex gap-3 mb-4 pb-3 border-bottom">
+                            <div class="avatar bg-success text-white rounded-circle d-flex align-items-center justify-content-center" style="width:45px;height:45px;font-weight:600;font-size:18px">
+                                @(review.CustomerName.Substring(0, 1).ToUpper())
+                            </div>
+                            <div class="flex-fill">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <h6 class="mb-1 fw-bold">@review.CustomerName</h6>
+                                        <div class="text-warning small mb-1">
+                                            @for (int i = 1; i <= 5; i++)
+                                            {
+                                                <i class="@(i <= review.Rating ? "fas" : "far") fa-star"></i>
+                                            }
+                                        </div>
+                                    </div>
+                                    <small class="text-muted">@review.CreatedAt.ToString("dd/MM/yyyy")</small>
+                                </div>
+                                @if (!string.IsNullOrEmpty(review.Comment))
+                                {
+                                    <p class="mb-0 mt-2">@review.Comment</p>
+                                }
+                            </div>
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function changeQty(delta) {
+            const el = document.getElementById('qty');
+            const val = Math.max(1, Math.min(Number(el.max), Number(el.value) + delta));
+            el.value = val;
+        }
+
+        // Star rating
+        function setRating(rating) {
+            document.getElementById('ratingValue').value = rating;
+            document.getElementById('btnSubmitReview').disabled = false;
+            
+            const stars = document.getElementById('starRating').children;
+            for(let i=0; i<5; i++) {
+                if(i < rating) {
+                    stars[i].classList.replace('far', 'fas');
+                } else {
+                    stars[i].classList.replace('fas', 'far');
+                }
+            }
+        }
+
+        // Toggle Wishlist
+        function toggleWishlist(fruitId) {
+            fetch('/Wishlist/Toggle', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: new URLSearchParams({ fruitId: fruitId })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if(data.success) {
+                    const btn = document.getElementById('btnWishlist');
+                    const icon = btn.querySelector('i');
+                    const text = document.getElementById('wishlistText');
+                    
+                    if(data.isInWishlist) {
+                        btn.classList.add('active');
+                        icon.classList.replace('far', 'fas');
+                        text.textContent = 'Đã lưu';
+                    } else {
+                        btn.classList.remove('active');
+                        icon.classList.replace('fas', 'far');
+                        text.textContent = 'Lưu yêu thích';
+                    }
+                } else {
+                    alert(data.message);
+                }
+            })
+            .catch(err => console.error(err));
+        }
+    </script>
+}

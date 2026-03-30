@@ -1,0 +1,237 @@
+@using FruitShop.Helpers
+@using FruitShop.Models.ViewModels
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - FruitShop</title>
+    <meta name="description" content="FruitShop - Cửa hàng trái cây tươi ngon nhất" />
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <!-- Font Awesome 6 -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet" />
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    @RenderSection("Styles", required: false)
+</head>
+<body class="user-body">
+
+@{
+    var sessionRole = Context.Session.GetString("UserRole") ?? "";
+    var sessionName = Context.Session.GetString("UserName") ?? "";
+}
+
+<!-- ADMIN TOOLBAR (chỉ hiển thị khi Admin/Staff xem store) -->
+@if (sessionRole == "Admin" || sessionRole == "Staff")
+{
+    <div class="admin-topbar">
+        <div class="container d-flex align-items-center justify-content-between py-1">
+            <div class="d-flex align-items-center gap-3">
+                <span class="admin-topbar-badge">
+                    <i class="fas fa-shield-alt me-1"></i>
+                    @(sessionRole == "Admin" ? "Admin" : "Staff"): @sessionName
+                </span>
+                <span class="text-white-50 d-none d-md-inline">| Đang xem giao diện khách hàng</span>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                @if (sessionRole == "Admin")
+                {
+                    <a asp-controller="Dashboard" asp-action="Index"
+                       class="btn btn-sm btn-admin-topbar">
+                        <i class="fas fa-chart-line me-1"></i>Dashboard
+                    </a>
+                }
+                <a asp-controller="Fruit" asp-action="Index"
+                   class="btn btn-sm btn-admin-topbar">
+                    <i class="fas fa-lemon me-1"></i>Trái cây
+                </a>
+                <a asp-controller="Order" asp-action="Index"
+                   class="btn btn-sm btn-admin-topbar">
+                    <i class="fas fa-bag-shopping me-1"></i>Đơn hàng
+                </a>
+                <a asp-controller="Category" asp-action="Index"
+                   class="btn btn-sm btn-admin-topbar">
+                    <i class="fas fa-tags me-1"></i>Danh mục
+                </a>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- NAVBAR -->
+<nav class="navbar navbar-expand-lg user-navbar sticky-top">
+    <div class="container">
+        <a class="navbar-brand" asp-controller="Home" asp-action="Index">
+            <i class="fas fa-apple-alt me-2"></i>
+            <span>FruitShop</span>
+        </a>
+
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navMenu">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item">
+                    <a class="nav-link" asp-controller="Home" asp-action="Index">
+                        <i class="fas fa-home me-1"></i>Trang chủ
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" asp-controller="Home" asp-action="Index" asp-route-categoryId="1">
+                        Nhập khẩu
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" asp-controller="Home" asp-action="Index" asp-route-categoryId="2">
+                        Nội địa
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" asp-controller="Home" asp-action="Index" asp-route-categoryId="5">
+                        Hữu cơ
+                    </a>
+                </li>
+            </ul>
+
+            <!-- Search Form -->
+            <form class="d-flex me-3 search-form" asp-controller="Home" asp-action="Index" method="get">
+                <div class="input-group">
+                    <input type="text" name="keyword" class="form-control search-input"
+                           placeholder="Tìm kiếm trái cây..."
+                           value="@ViewBag.Keyword"
+                           id="searchInput" autocomplete="off" />
+                    <button class="btn btn-search" type="submit">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+                <!-- Autocomplete dropdown -->
+                <div class="autocomplete-dropdown" id="autocompleteList"></div>
+            </form>
+
+            <!-- Right Nav -->
+            <ul class="navbar-nav align-items-center">
+                <!-- Cart Icon -->
+                @{
+                    var cartCount = (int)(ViewBag.CartCount ?? 0);
+                }
+                <li class="nav-item me-2">
+                    <a class="nav-link cart-icon" asp-controller="Order" asp-action="Cart">
+                        <i class="fas fa-shopping-cart"></i>
+                        @if (cartCount > 0)
+                        {
+                            <span class="cart-badge" id="cartBadge">@cartCount</span>
+                        }
+                    </a>
+                </li>
+
+                @if (SessionHelper.IsLoggedIn(Context.Session))
+                {
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle user-menu-btn" data-bs-toggle="dropdown" href="#">
+                        <i class="fas fa-user-circle me-1"></i>
+                        @Context.Session.GetString("UserName")
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end shadow">
+                        <li class="dropdown-header">
+                            <small class="text-muted">@(sessionRole == "Admin" ? "Quản trị viên" : sessionRole == "Staff" ? "Nhân viên" : "Khách hàng")</small>
+                        </li>
+                        <li><hr class="dropdown-divider my-1"></li>
+                        <li><a class="dropdown-item" asp-controller="Account" asp-action="Profile">
+                            <i class="fas fa-user-edit me-2 text-success"></i>Thông tin cá nhân
+                        </a></li>
+                        <li><a class="dropdown-item" asp-controller="Order" asp-action="History">
+                            <i class="fas fa-history me-2 text-primary"></i>Đơn hàng của tôi
+                        </a></li>
+                        @if (sessionRole == "Admin" || sessionRole == "Staff")
+                        {
+                        <li><hr class="dropdown-divider my-1"></li>
+                        <li><a class="dropdown-item text-success fw-semibold" asp-controller="Dashboard" asp-action="Index">
+                            <i class="fas fa-tachometer-alt me-2"></i>← Về trang quản trị
+                        </a></li>
+                        }
+                        <li><hr class="dropdown-divider my-1"></li>
+                        <li><a class="dropdown-item text-danger" asp-controller="Account" asp-action="Logout">
+                            <i class="fas fa-sign-out-alt me-2"></i>Đăng xuất
+                        </a></li>
+                    </ul>
+                </li>
+                }
+                else
+                {
+                <li class="nav-item">
+                    <a class="btn btn-outline-light btn-sm me-2" asp-controller="Account" asp-action="Login">Đăng nhập</a>
+                </li>
+                <li class="nav-item">
+                    <a class="btn btn-light btn-sm" asp-controller="Account" asp-action="Register">Đăng ký</a>
+                </li>
+                }
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- MAIN CONTENT -->
+<main>
+    @if (TempData["Success"] != null)
+    {
+        <div class="container mt-3">
+            <div class="alert alert-success alert-dismissible fade show">
+                <i class="fas fa-check-circle me-2"></i>@TempData["Success"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        </div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="container mt-3">
+            <div class="alert alert-danger alert-dismissible fade show">
+                <i class="fas fa-exclamation-circle me-2"></i>@TempData["Error"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        </div>
+    }
+
+    @RenderBody()
+</main>
+
+<!-- FOOTER -->
+<footer class="user-footer mt-5">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-4 mb-3">
+                <h5><i class="fas fa-apple-alt me-2"></i>FruitShop</h5>
+                <p class="text-muted small">Cửa hàng trái cây tươi ngon, nhập khẩu và nội địa chất lượng cao.</p>
+            </div>
+            <div class="col-md-4 mb-3">
+                <h6>Danh mục</h6>
+                <ul class="list-unstyled small">
+                    <li><a href="#" class="text-muted text-decoration-none">Trái cây nhập khẩu</a></li>
+                    <li><a href="#" class="text-muted text-decoration-none">Trái cây nội địa</a></li>
+                    <li><a href="#" class="text-muted text-decoration-none">Trái cây hữu cơ</a></li>
+                    <li><a href="#" class="text-muted text-decoration-none">Trái cây sấy khô</a></li>
+                </ul>
+            </div>
+            <div class="col-md-4 mb-3">
+                <h6>Liên hệ</h6>
+                <ul class="list-unstyled small text-muted">
+                    <li><i class="fas fa-phone me-2"></i>0901 234 567</li>
+                    <li><i class="fas fa-envelope me-2"></i>info@fruitshop.vn</li>
+                    <li><i class="fas fa-map-marker-alt me-2"></i>123 Lê Lợi, Q.1, TP.HCM</li>
+                </ul>
+            </div>
+        </div>
+        <hr />
+        <p class="text-center text-muted small mb-0">
+            &copy; @DateTime.Now.Year FruitShop. Design with <i class="fas fa-heart text-danger"></i>
+        </p>
+    </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="~/js/site.js" asp-append-version="true"></script>
+@RenderSection("Scripts", required: false)
+</body>
+</html>

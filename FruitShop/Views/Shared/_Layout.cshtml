@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - FruitShop Admin</title>
+    <meta name="description" content="FruitShop - Hệ thống quản lý cửa hàng trái cây" />
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <!-- Font Awesome 6 -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet" />
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    @RenderSection("Styles", required: false)
+</head>
+<body class="admin-body">
+
+<!-- Sidebar Overlay (Mobile) -->
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+<!-- SIDEBAR -->
+<nav class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+        <div class="sidebar-logo">
+            <i class="fas fa-apple-alt"></i>
+            <span>FruitShop</span>
+        </div>
+        <button class="sidebar-close d-lg-none" onclick="toggleSidebar()">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+
+    <!-- User info -->
+    <div class="sidebar-user">
+        <div class="user-avatar">
+            <i class="fas fa-user-circle"></i>
+        </div>
+        <div class="user-info">
+            <div class="user-name">@(Context.Session.GetString("UserName") ?? "Người dùng")</div>
+            <div class="user-role badge">
+                @{
+                    var role = Context.Session.GetString("UserRole") ?? "";
+                    var roleBadge = role == "Admin" ? "badge-admin" : "badge-staff";
+                    var roleText  = role == "Admin" ? "Quản trị viên" : "Nhân viên";
+                }
+                <span class="badge @roleBadge">@roleText</span>
+            </div>
+        </div>
+    </div>
+
+    <ul class="sidebar-menu">
+        @if (role == "Admin")
+        {
+        <li class="menu-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Dashboard" ? "active" : "")">
+            <a asp-controller="Dashboard" asp-action="Index">
+                <i class="fas fa-chart-line"></i>
+                <span>Dashboard</span>
+            </a>
+        </li>
+        }
+        <li class="menu-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Fruit" ? "active" : "")">
+            <a asp-controller="Fruit" asp-action="Index">
+                <i class="fas fa-lemon"></i>
+                <span>Quản lý Trái cây</span>
+            </a>
+        </li>
+        <li class="menu-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Category" ? "active" : "")">
+            <a asp-controller="Category" asp-action="Index">
+                <i class="fas fa-tags"></i>
+                <span>Danh mục</span>
+            </a>
+        </li>
+        <li class="menu-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Order" ? "active" : "")">
+            <a asp-controller="Order" asp-action="Index">
+                <i class="fas fa-shopping-bag"></i>
+                <span>Đơn hàng</span>
+            </a>
+        </li>
+        <li class="menu-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Coupon" ? "active" : "")">
+            <a asp-controller="Coupon" asp-action="Index">
+                <i class="fas fa-ticket-alt"></i>
+                <span>Mã giảm giá</span>
+            </a>
+        </li>
+        <li class="menu-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Inventory" ? "active" : "")">
+            <a asp-controller="Inventory" asp-action="Index">
+                <i class="fas fa-boxes"></i>
+                <span>Tồn kho</span>
+            </a>
+        </li>
+        @if (role == "Admin")
+        {
+        <li class="menu-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "User" ? "active" : "")">
+            <a asp-controller="User" asp-action="Index">
+                <i class="fas fa-users"></i>
+                <span>Người dùng</span>
+            </a>
+        </li>
+        }
+        <li class="menu-divider"></li>
+        <li class="menu-item">
+            <a asp-controller="Account" asp-action="Profile">
+                <i class="fas fa-user-edit"></i>
+                <span>Hồ sơ cá nhân</span>
+            </a>
+        </li>
+        <li class="menu-item">
+            <a asp-controller="Home" asp-action="Index">
+                <i class="fas fa-store"></i>
+                <span>Xem cửa hàng</span>
+            </a>
+        </li>
+        <li class="menu-item text-danger-menu">
+            <a asp-controller="Account" asp-action="Logout">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Đăng xuất</span>
+            </a>
+        </li>
+    </ul>
+</nav>
+
+<!-- MAIN CONTENT AREA -->
+<div class="main-wrapper" id="mainWrapper">
+
+    <!-- TOP HEADER -->
+    <header class="top-header">
+        <button class="btn-toggle-sidebar" onclick="toggleSidebar()">
+            <i class="fas fa-bars"></i>
+        </button>
+
+        <!-- Breadcrumb -->
+        <nav aria-label="breadcrumb" class="d-none d-md-flex align-items-center">
+            <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item"><a asp-controller="Dashboard" asp-action="Index">Home</a></li>
+                @RenderSection("Breadcrumb", required: false)
+            </ol>
+        </nav>
+
+        <div class="header-right">
+            <span class="header-time d-none d-lg-block" id="headerTime"></span>
+            <div class="header-user dropdown">
+                <button class="btn btn-link dropdown-toggle" data-bs-toggle="dropdown">
+                    <i class="fas fa-user-circle"></i>
+                    @Context.Session.GetString("UserName")
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end shadow">
+                    <li><a class="dropdown-item" asp-controller="Account" asp-action="Profile">
+                        <i class="fas fa-user-edit me-2 text-success"></i>Thông tin cá nhân
+                    </a></li>
+                    <li><a class="dropdown-item" asp-controller="Home" asp-action="Index">
+                        <i class="fas fa-store me-2 text-primary"></i>Xem cửa hàng
+                    </a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item text-danger" asp-controller="Account" asp-action="Logout">
+                        <i class="fas fa-sign-out-alt me-2"></i>Đăng xuất
+                    </a></li>
+                </ul>
+            </div>
+        </div>
+    </header>
+
+    <!-- PAGE CONTENT -->
+    <main class="page-content">
+        <!-- Alert messages -->
+        @if (TempData["Success"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="fas fa-check-circle me-2"></i>@TempData["Success"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        }
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="fas fa-exclamation-circle me-2"></i>@TempData["Error"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        }
+
+        @RenderBody()
+    </main>
+
+    <footer class="admin-footer">
+        <span>&copy; @DateTime.Now.Year FruitShop - Hệ thống quản lý cửa hàng trái cây</span>
+    </footer>
+</div>
+
+<!-- Bootstrap 5 JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<!-- Custom JS -->
+<script src="~/js/site.js" asp-append-version="true"></script>
+<script>
+    // Hiển thị giờ thực tế trên header
+    function updateTime() {
+        const now = new Date();
+        document.getElementById('headerTime').textContent =
+            now.toLocaleString('vi-VN', { weekday: 'short', day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    }
+    updateTime(); setInterval(updateTime, 1000);
+</script>
+@RenderSection("Scripts", required: false)
+</body>
+</html>

@@ -1,0 +1,122 @@
+@model FruitShop.Models.ViewModels.FruitViewModel
+@{
+    ViewData["Title"] = "Thêm trái cây";
+    Layout = "_Layout";
+}
+@section Breadcrumb {
+    <li class="breadcrumb-item"><a asp-action="Index">Trái cây</a></li>
+    <li class="breadcrumb-item active">Thêm mới</li>
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-9">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-plus-circle me-2 text-success"></i>Thêm trái cây mới</h5>
+            </div>
+            <div class="card-body">
+                <form asp-action="Create" method="post" enctype="multipart/form-data" id="fruitForm">
+                    @Html.AntiForgeryToken()
+
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="mb-3">
+                                <label asp-for="FruitName" class="form-label fw-semibold">Tên trái cây <span class="text-danger">*</span></label>
+                                <input asp-for="FruitName" class="form-control" placeholder="VD: Táo Fuji Nhật Bản" />
+                                <span asp-validation-for="FruitName" class="text-danger small"></span>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label asp-for="CategoryId" class="form-label fw-semibold">Danh mục <span class="text-danger">*</span></label>
+                                    <select asp-for="CategoryId" asp-items="ViewBag.Categories" class="form-select">
+                                        <option value="">-- Chọn danh mục --</option>
+                                    </select>
+                                    <span asp-validation-for="CategoryId" class="text-danger small"></span>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label asp-for="Origin" class="form-label fw-semibold">Xuất xứ</label>
+                                    <input asp-for="Origin" class="form-control" placeholder="VD: Nhật Bản" />
+                                    <span asp-validation-for="Origin" class="text-danger small"></span>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-5 mb-3">
+                                    <label asp-for="Price" class="form-label fw-semibold">Giá bán (đ) <span class="text-danger">*</span></label>
+                                    <div class="input-group">
+                                        <input asp-for="Price" class="form-control" placeholder="85000" />
+                                        <span class="input-group-text">đ</span>
+                                    </div>
+                                    <span asp-validation-for="Price" class="text-danger small"></span>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label asp-for="StockQuantity" class="form-label fw-semibold">Tồn kho <span class="text-danger">*</span></label>
+                                    <input asp-for="StockQuantity" class="form-control" placeholder="100" />
+                                    <span asp-validation-for="StockQuantity" class="text-danger small"></span>
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <label asp-for="Unit" class="form-label fw-semibold">Đơn vị <span class="text-danger">*</span></label>
+                                    <select asp-for="Unit" class="form-select">
+                                        <option value="kg">kg</option>
+                                        <option value="hộp">hộp</option>
+                                        <option value="trái">trái</option>
+                                        <option value="túi">túi</option>
+                                        <option value="nải">nải</option>
+                                    </select>
+                                    <span asp-validation-for="Unit" class="text-danger small"></span>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label asp-for="Description" class="form-label fw-semibold">Mô tả</label>
+                                <textarea asp-for="Description" class="form-control" rows="4" placeholder="Mô tả sản phẩm..."></textarea>
+                            </div>
+                        </div>
+
+                        <!-- Ảnh upload -->
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label asp-for="ImageFile" class="form-label fw-semibold">Ảnh sản phẩm</label>
+                                <div class="image-upload-box" onclick="document.getElementById('imageInput').click()">
+                                    <img src="~/images/fruits/default.jpg" id="imagePreview" class="img-fluid rounded" />
+                                    <div class="upload-hint mt-2">
+                                        <i class="fas fa-upload me-1"></i>Nhấn để chọn ảnh
+                                        <div class="small text-muted">JPG, PNG, GIF (tối đa 5MB)</div>
+                                    </div>
+                                </div>
+                                <input asp-for="ImageFile" type="file" id="imageInput" class="d-none"
+                                       accept=".jpg,.jpeg,.png,.gif,.webp"
+                                       onchange="previewImage(this)" />
+                                <span asp-validation-for="ImageFile" class="text-danger small"></span>
+                            </div>
+                            <div class="form-check form-switch mt-3">
+                                <input asp-for="IsActive" class="form-check-input" checked />
+                                <label asp-for="IsActive" class="form-check-label">Đang bán</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-2 mt-3">
+                        <button type="submit" class="btn btn-success px-4">
+                            <i class="fas fa-save me-2"></i>Lưu trái cây
+                        </button>
+                        <a asp-action="Index" class="btn btn-outline-secondary px-4">
+                            <i class="fas fa-arrow-left me-2"></i>Quay lại
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScripts" />
+    <script>
+        function previewImage(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = e => document.getElementById('imagePreview').src = e.target.result;
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+    </script>
+}

@@ -1,0 +1,96 @@
+@model IEnumerable<FruitShop.Models.Entities.Coupon>
+@{
+    ViewData["Title"] = "Quản lý mã giảm giá";
+    Layout = "_Layout";
+}
+@section Breadcrumb {
+    <li class="breadcrumb-item active">Mã giảm giá</li>
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="page-title"><i class="fas fa-ticket-alt me-2 text-primary"></i>Quản lý mã giảm giá</h4>
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createCouponModal">
+        <i class="fas fa-plus me-2"></i>Thêm mã mới
+    </button>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body p-0">
+        <table class="table table-hover mb-0 align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>Mã code</th>
+                    <th>Giảm giá (%)</th>
+                    <th>Hạn sử dụng</th>
+                    <th class="text-center">Trạng thái</th>
+                    <th class="text-center">Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (!Model.Any())
+                {
+                    <tr><td colspan="5" class="text-center text-muted py-4">Chưa có mã giảm giá nào</td></tr>
+                }
+                @foreach (var c in Model)
+                {
+                    var isExpired = c.ExpiryDate < DateTime.Now;
+                    <tr>
+                        <td class="fw-bold text-success"><i class="fas fa-ticket-alt me-2"></i>@c.Code</td>
+                        <td><span class="badge bg-danger">@c.DiscountPercent %</span></td>
+                        <td class="@(isExpired ? "text-danger" : "")">
+                            @c.ExpiryDate.ToString("dd/MM/yyyy")
+                            @if (isExpired) { <small class="text-danger ms-1">(Hết hạn)</small> }
+                        </td>
+                        <td class="text-center">
+                            @if (c.IsActive && !isExpired) { <span class="badge bg-success">Khả dụng</span> }
+                            else { <span class="badge bg-secondary">Vô hiệu</span> }
+                        </td>
+                        <td class="text-center">
+                            <form asp-action="ToggleActive" method="post" class="d-inline">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="id" value="@c.CouponId" />
+                                <input type="hidden" name="isActive" value="@(c.IsActive ? "false" : "true")" />
+                                <button type="submit" class="btn btn-sm btn-outline-@(c.IsActive ? "warning" : "success")" title="@(c.IsActive ? "Tạm ngưng" : "Kích hoạt")">
+                                    <i class="fas fa-power-off"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal Create -->
+<div class="modal fade" id="createCouponModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form asp-action="Create" method="post">
+                @Html.AntiForgeryToken()
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-ticket-alt me-2 text-primary"></i>Thêm mã giảm giá</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Mã Code (Tối đa 50 ký tự, vd: SUMMER20)</label>
+                        <input type="text" name="code" class="form-control" style="text-transform:uppercase" required />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Giảm giá (%)</label>
+                        <input type="number" name="discountPercent" class="form-control" min="1" max="100" value="10" required />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Hạn sử dụng</label>
+                        <input type="date" name="expiryDate" class="form-control" value="@DateTime.Now.AddMonths(1).ToString("yyyy-MM-dd")" required />
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                    <button type="submit" class="btn btn-primary">Lưu lại</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
