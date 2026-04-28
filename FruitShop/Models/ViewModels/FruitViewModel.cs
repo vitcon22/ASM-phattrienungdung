@@ -19,6 +19,14 @@ namespace FruitShop.Models.ViewModels
         [Display(Name = "Danh mục")]
         public int CategoryId { get; set; }
 
+        [Display(Name = "Nhà cung cấp")]
+        public int? SupplierId { get; set; }
+
+        [Required(ErrorMessage = "Vui lòng nhập Ngưỡng tồn kho")]
+        [Range(0, int.MaxValue, ErrorMessage = "Ngưỡng không được âm")]
+        [Display(Name = "Ngưỡng tồn kho tối thiểu")]
+        public int MinStock { get; set; } = 10;
+
         [Required(ErrorMessage = "Vui lòng nhập Giá")]
         [Range(1000, 1000000000, ErrorMessage = "Giá phải từ 1.000đ đến 1.000.000.000đ")]
         [Display(Name = "Giá bán")]

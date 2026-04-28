@@ -19,10 +19,11 @@ namespace FruitShop.Controllers
             _fruitRepo     = fruitRepo;
         }
 
-        public IActionResult Index()
+        public IActionResult Index(int? fruitId)
         {
-            var logs = _inventoryRepo.GetLogs();
-            ViewBag.Fruits = new SelectList(_fruitRepo.GetAll(), "FruitId", "FruitName");
+            var logs = _inventoryRepo.GetLogs(fruitId).ToList();
+            ViewBag.Fruits = new SelectList(_fruitRepo.GetAll(), "FruitId", "FruitName", fruitId);
+            ViewBag.SelectedFruitId = fruitId;
             return View(logs);
         }
 
@@ -55,6 +56,36 @@ namespace FruitShop.Controllers
                 _inventoryRepo.AddLogAndAdjustStock(log);
 
                 TempData["Success"] = "Điều chỉnh tồn kho thành công!";
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"Lỗi: {ex.Message}";
+            }
+            return RedirectToAction(nameof(Index));
+        }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult ReturnSpoiled(int fruitId, int spoiledQuantity, string spoilReason)
+        {
+            try
+            {
+                if (spoiledQuantity <= 0)
+                {
+                    TempData["Error"] = "Số lượng hàng hỏng/trả lại phải lớn hơn 0.";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                var staffId = HttpContext.Session.GetInt32(SessionHelper.UserIdKey) ?? 0;
+                var log = new InventoryLog
+                {
+                    FruitId        = fruitId,
+                    StaffId        = staffId,
+                    QuantityChange = -spoiledQuantity, // Giảm tồn kho
+                    Reason         = "[HÀNG HỎNG/TRẢ LẠI] " + spoilReason
+                };
+
+                _inventoryRepo.AddLogAndAdjustStock(log);
+                TempData["Success"] = "Ghi nhận hàng hỏng/trả lại thành công!";
             }
             catch (Exception ex)
             {

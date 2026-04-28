@@ -7,144 +7,275 @@
 }
 
 <div class="container py-4">
+    <!-- Page Header -->
+    <div class="page-header animate-fade-in-up">
+        <div>
+            <h1 class="page-header-title mb-1">
+                <i class="fas fa-apple-alt me-2" style="color:var(--primary);"></i>@Model.FruitName
+            </h1>
+            <p class="page-header-subtitle mb-0">Chi tiết sản phẩm</p>
+        </div>
+        @if (isAdminOrStaff)
+        {
+            <div class="d-flex gap-2">
+                <a asp-action="Edit" asp-route-id="@Model.FruitId" class="btn" style="border:1.5px solid var(--border);border-radius:10px;font-weight:600;padding:0.5rem 1rem;">
+                    <i class="fas fa-edit me-1" style="color:var(--primary);"></i>Sửa
+                </a>
+                <a asp-action="Delete" asp-route-id="@Model.FruitId" class="btn" style="border:1.5px solid var(--border);border-radius:10px;font-weight:600;padding:0.5rem 1rem;">
+                    <i class="fas fa-trash me-1" style="color:var(--danger);"></i>Xóa
+                </a>
+            </div>
+        }
+    </div>
+
     <div class="row g-4">
-        <div class="col-md-5">
-            <div class="position-relative">
+        <!-- Cột 1: Hình ảnh sản phẩm -->
+        <div class="col-md-5 animate-fade-in-up">
+            <div class="product-detail-gallery">
                 <img src="~/images/fruits/@Model.GetImageUrl()"
                      alt="@Model.FruitName"
-                     class="img-fluid rounded-3 shadow w-100"
-                     style="max-height:400px;object-fit:cover;"
+                     class="product-detail-main-img"
                      onerror="this.src='/images/fruits/default.jpg'" />
-                @if (!Model.InStock)
-                {
-                    <div class="position-absolute top-0 start-0 m-3">
-                        <span class="badge bg-danger fs-6">Hết hàng</span>
-                    </div>
-                }
             </div>
         </div>
-        <div class="col-md-7">
-            <nav aria-label="breadcrumb">
-                <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Trang chủ</a></li>
-                    <li class="breadcrumb-item"><a asp-controller="Fruit" asp-action="Index">Sản phẩm</a></li>
-                    <li class="breadcrumb-item active">@Model.FruitName</li>
-                </ol>
-            </nav>
 
-            <div class="d-flex justify-content-between align-items-center mb-2">
-                <span class="badge bg-success">@Model.CategoryName</span>
-                @if (isLoggedIn)
-                {
-                    <button id="btnWishlist" class="btn btn-sm btn-outline-danger @(ViewBag.IsInWishlist ? "active" : "")" onclick="toggleWishlist(@Model.FruitId)">
-                        <i class="@(ViewBag.IsInWishlist ? "fas" : "far") fa-heart"></i>
-                        <span id="wishlistText">@(ViewBag.IsInWishlist ? "Đã lưu" : "Lưu yêu thích")</span>
-                    </button>
-                }
-            </div>
-            
-            <h2 class="fw-bold">@Model.FruitName</h2>
-            
-            <div class="d-flex align-items-center gap-2 mb-3">
-                <div class="text-warning small">
-                    @for (int i=1; i<=5; i++) {
-                        <i class="@(i <= Math.Round((double)ViewBag.AvgRating) ? "fas" : "far") fa-star"></i>
+        <!-- Cột 2: Thông tin sản phẩm -->
+        <div class="col-md-7 animate-fade-in-up stagger-2">
+            <div class="card">
+                <div class="card-body">
+                    <!-- Danh mục + Tồn kho badges -->
+                    <div class="d-flex align-items-center gap-2 mb-3 flex-wrap">
+                        <span class="badge" style="background:var(--primary-pale);color:var(--primary-dark);border-radius:50px;font-size:0.8rem;font-weight:700;">@Model.CategoryName</span>
+                        @if (Model.InStock)
+                        {
+                            <span class="badge" style="background:var(--primary-pale);color:#065F46;border-radius:50px;font-size:0.75rem;">
+                                <i class="fas fa-check-circle me-1"></i>Còn hàng
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="badge" style="background:#FEE2E2;color:#991B1B;border-radius:50px;font-size:0.75rem;">
+                                <i class="fas fa-ban me-1"></i>Hết hàng
+                            </span>
+                        }
+                    </div>
+
+                    <!-- Tên sản phẩm -->
+                    <h4 class="mb-2" style="font-weight:800;">@Model.FruitName</h4>
+
+                    <!-- Rating stars -->
+                    @{
+                        var avgRating = (double)(ViewBag.AvgRating ?? 0);
+                        var reviewCount = (int)(ViewBag.ReviewCount ?? 0);
                     }
-                </div>
-                <span class="text-muted small">
-                    (@ViewBag.AvgRating.ToString("0.0") / 5.0 - @ViewBag.ReviewCount đánh giá)
-                </span>
-            </div>
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <div class="text-warning small">
+                            @for (int i = 1; i <= 5; i++)
+                            {
+                                <i class="@(i <= Math.Round(avgRating) ? "fas" : "far") fa-star"></i>
+                            }
+                        </div>
+                        <span class="text-muted small">(@avgRating.ToString("0.0") / 5.0 @(reviewCount > 0 ? $"— {reviewCount} đánh giá" : "— Chưa có đánh giá"))</span>
+                    </div>
 
-            @if (!string.IsNullOrEmpty(Model.Origin))
-            {
-                <p class="text-muted"><i class="fas fa-map-marker-alt me-2 text-success"></i>Xuất xứ: <strong>@Model.Origin</strong></p>
-            }
+                    <!-- Xuất xứ -->
+                    @if (!string.IsNullOrEmpty(Model.Origin))
+                    {
+                        <p style="color:var(--text-secondary);font-size:0.88rem;margin-bottom:1rem;">
+                            <i class="fas fa-map-marker-alt me-1" style="color:var(--primary);"></i>@Model.Origin
+                        </p>
+                    }
 
-            <div class="price-display mb-3">
-                <span class="text-success fw-bold fs-3">@Model.Price.ToString("N0")đ</span>
-                <span class="text-muted ms-1">/ @Model.Unit</span>
-            </div>
+                    <!-- Giá -->
+                    <div style="margin-bottom:1.5rem;">
+                        <span style="color:var(--primary);font-weight:800;font-size:2rem;">@Model.Price.ToString("N0")đ</span>
+                        <span style="color:var(--text-muted);font-size:0.9rem;">/@Model.Unit</span>
+                    </div>
 
-            <div class="mb-3">
-                <span class="me-3">
-                    <i class="fas fa-box me-1 text-success"></i>
-                    Tồn kho: <strong class="@(Model.StockQuantity < 10 ? "text-danger" : "text-success")">@Model.StockQuantity @Model.Unit</strong>
-                </span>
-            </div>
+                    <!-- Tồn kho -->
+                    <div class="mb-2">
+                        <span>
+                            <i class="fas fa-box me-1" style="color:var(--primary);"></i>
+                            Tồn kho: <strong class="@(Model.StockQuantity < Model.MinStock ? "text-danger" : "text-success")">@Model.StockQuantity @Model.Unit</strong>
+                            @if (Model.StockQuantity < Model.MinStock && Model.InStock)
+                            {
+                                <span class="badge bg-warning text-dark ms-2" style="font-size:0.7rem;"><i class="fas fa-exclamation-triangle me-1"></i>Sắp hết</span>
+                            }
+                        </span>
+                    </div>
 
-            @if (!string.IsNullOrEmpty(Model.Description))
-            {
-                <div class="product-description mb-4">
-                    <h6>Mô tả sản phẩm</h6>
-                    <p class="text-muted">@Model.Description</p>
-                </div>
-            }
+                    <!-- Mô tả -->
+                    @if (!string.IsNullOrEmpty(Model.Description))
+                    {
+                        <p style="color:var(--text-secondary);line-height:1.7;margin-bottom:1.5rem;">@Model.Description</p>
+                    }
 
-            @if (isAdminOrStaff)
-            {
-                <div class="d-flex gap-2">
-                    <a asp-action="Edit" asp-route-id="@Model.FruitId" class="btn btn-primary">
-                        <i class="fas fa-edit me-2"></i>Sửa
-                    </a>
-                    <a asp-action="Delete" asp-route-id="@Model.FruitId" class="btn btn-outline-danger">
-                        <i class="fas fa-trash me-2"></i>Xóa
-                    </a>
-                </div>
-            }
-            else if (Model.InStock)
-            {
-                <form asp-controller="Order" asp-action="AddToCart" method="post">
-                    @Html.AntiForgeryToken()
-                    <input type="hidden" name="fruitId" value="@Model.FruitId" />
-                    <div class="d-flex align-items-center gap-3 mb-3">
-                        <label class="fw-semibold">Số lượng:</label>
-                        <div class="input-group" style="width:130px">
-                            <button type="button" class="btn btn-outline-secondary" onclick="changeQty(-1)">−</button>
-                            <input type="number" name="quantity" id="qty" class="form-control text-center" value="1" min="1" max="@Model.StockQuantity" />
-                            <button type="button" class="btn btn-outline-secondary" onclick="changeQty(1)">+</button>
+                    <hr style="margin:1.5rem 0;" />
+
+                    <!-- Nút hành động -->
+                    @if (isAdminOrStaff)
+                    {
+                        <div class="d-flex gap-2">
+                            <a asp-action="Edit" asp-route-id="@Model.FruitId" class="btn btn-primary flex-fill" style="border-radius:10px;">
+                                <i class="fas fa-edit me-2"></i>Sửa thông tin
+                            </a>
+                            <a asp-action="Delete" asp-route-id="@Model.FruitId" class="btn btn-outline-danger" style="border-radius:10px;">
+                                <i class="fas fa-trash me-2"></i>Xóa
+                            </a>
+                        </div>
+                    }
+                    else if (Model.InStock)
+                    {
+                        <div class="d-flex gap-3 align-items-center flex-wrap">
+                            <!-- Số lượng -->
+                            <div class="d-flex align-items-center gap-2">
+                                <label class="fw-semibold small">Số lượng:</label>
+                                <div class="d-flex align-items-center">
+                                    <button type="button" onclick="changeQty(-1)" style="width:32px;height:32px;border:1.5px solid var(--border);border-radius:8px;background:var(--bg-card);display:flex;align-items:center;justify-content:center;font-weight:700;padding:0;">−</button>
+                                    <input type="number" id="qtyInput" value="1" min="1" max="@Model.StockQuantity" class="form-control" style="width:60px;text-align:center;border-radius:8px;font-weight:700;margin:0 4px;" />
+                                    <button type="button" onclick="changeQty(1)" style="width:32px;height:32px;border:1.5px solid var(--border);border-radius:8px;background:var(--bg-card);display:flex;align-items:center;justify-content:center;font-weight:700;padding:0;">+</button>
+                                </div>
+                            </div>
+
+                            <!-- Thêm vào giỏ -->
+                            <form asp-controller="Order" asp-action="AddToCart" method="post" class="flex-grow-1">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="fruitId" value="@Model.FruitId" />
+                                <input type="hidden" id="hiddenQty" name="quantity" value="1" />
+                                <button type="submit" class="btn btn-success w-100" style="border-radius:10px;padding:0.7rem;font-weight:700;font-size:0.95rem;">
+                                    <i class="fas fa-cart-plus me-2"></i>Thêm vào giỏ hàng
+                                </button>
+                            </form>
+
+                            <!-- Wishlist -->
+                            @if (isLoggedIn)
+                            {
+                                <button type="button" id="btnWishlist" onclick="toggleWishlist(@Model.FruitId)" class="btn" style="border:1.5px solid var(--border);border-radius:10px;padding:0.7rem 0.9rem;" title="Lưu yêu thích">
+                                    <i class="@((bool)ViewBag.IsInWishlist ? "fas" : "far") fa-heart @(ViewBag.IsInWishlist != null && (bool)ViewBag.IsInWishlist ? "text-danger" : "")"></i>
+                                </button>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="d-flex gap-3 align-items-center">
+                            <button class="btn btn-secondary" disabled style="border-radius:10px;opacity:0.7;">
+                                <i class="fas fa-ban me-2"></i>Sản phẩm tạm hết hàng
+                            </button>
+                            @if (!isLoggedIn)
+                            {
+                                <a asp-controller="Account" asp-action="Login" class="btn btn-outline-success" style="border-radius:10px;">
+                                    <i class="fas fa-sign-in-alt me-2"></i>Đăng nhập để đặt hàng
+                                </a>
+                            }
+                        </div>
+                    }
+
+                    <!-- Trust badges -->
+                    <div class="d-flex gap-4 mt-3 pt-3" style="border-top:1px solid var(--border);">
+                        <div class="d-flex align-items-center gap-2" style="font-size:0.78rem;color:var(--text-muted);">
+                            <i class="fas fa-truck" style="color:var(--primary);"></i>Giao nhanh 24h
+                        </div>
+                        <div class="d-flex align-items-center gap-2" style="font-size:0.78rem;color:var(--text-muted);">
+                            <i class="fas fa-shield-alt" style="color:var(--primary);"></i>Đảm bảo chất lượng
+                        </div>
+                        <div class="d-flex align-items-center gap-2" style="font-size:0.78rem;color:var(--text-muted);">
+                            <i class="fas fa-undo" style="color:var(--primary);"></i>Đổi trả 24h
                         </div>
                     </div>
-                    <button type="submit" class="btn btn-success btn-lg px-5">
-                        <i class="fas fa-cart-plus me-2"></i>Thêm vào giỏ hàng
-                    </button>
-                </form>
-            }
-            else if (!isLoggedIn)
-            {
-                <a asp-controller="Account" asp-action="Login" class="btn btn-outline-success">
-                    <i class="fas fa-sign-in-alt me-2"></i>Đăng nhập để đặt hàng
-                </a>
-            }
+                </div>
+            </div>
         </div>
     </div>
-    
+
+    <!-- Sản phẩm thay thế (khi hết hàng) -->
+    @if (!Model.InStock && ViewBag.Alternatives != null && ((List<FruitShop.Models.Entities.Fruit>)ViewBag.Alternatives).Any())
+    {
+        <hr class="my-5" />
+        <div class="row">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h4 class="mb-0 fw-bold text-danger"><i class="fas fa-exchange-alt me-2"></i>Sản phẩm thay thế</h4>
+                    <span class="text-muted small">Sản phẩm hiện tại đang hết hàng, bạn có thể tham khảo:</span>
+                </div>
+                <div class="row row-cols-2 row-cols-md-4 g-3">
+                    @foreach (var alt in (List<FruitShop.Models.Entities.Fruit>)ViewBag.Alternatives)
+                    {
+                        <div class="col">
+                            <div class="card h-100 border-0 shadow-sm">
+                                <a asp-action="Details" asp-route-id="@alt.FruitId">
+                                    <img src="~/images/fruits/@alt.GetImageUrl()" class="card-img-top object-fit-cover" height="180" alt="@alt.FruitName" onerror="this.src='/images/fruits/default.jpg'" />
+                                    <div class="card-body p-3">
+                                        <h6 class="card-title fw-bold mb-1" style="font-size:0.85rem;">@alt.FruitName</h6>
+                                        <div class="text-success fw-bold" style="font-size:0.85rem;">@alt.Price.ToString("N0")đ / @alt.Unit</div>
+                                    </div>
+                                </a>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- Sản phẩm cùng danh mục -->
+    @if (ViewBag.RelatedProducts != null && ((List<FruitShop.Models.Entities.Fruit>)ViewBag.RelatedProducts).Any())
+    {
+        <hr class="my-5" />
+        <div class="row">
+            <div class="col-12">
+                <h4 class="mb-4 fw-bold"><i class="fas fa-th-large text-success me-2"></i>Sản phẩm cùng danh mục</h4>
+                <div class="row row-cols-2 row-cols-md-4 g-3">
+                    @foreach (var related in (List<FruitShop.Models.Entities.Fruit>)ViewBag.RelatedProducts)
+                    {
+                        <div class="col">
+                            <div class="card h-100 border-0 shadow-sm">
+                                <a asp-action="Details" asp-route-id="@related.FruitId">
+                                    <img src="~/images/fruits/@related.GetImageUrl()" class="card-img-top object-fit-cover" height="180" alt="@related.FruitName" onerror="this.src='/images/fruits/default.jpg'" />
+                                    <div class="card-body p-3">
+                                        <h6 class="card-title fw-bold mb-1" style="font-size:0.85rem;">@related.FruitName</h6>
+                                        <div class="text-success fw-bold" style="font-size:0.85rem;">@related.Price.ToString("N0")đ / @related.Unit</div>
+                                    </div>
+                                </a>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+
     <!-- Reviews Section -->
     <hr class="my-5" />
     <div class="row">
-        <div class="col-md-8 mx-auto">
-            <h4 class="mb-4 d-flex align-items-center"><i class="fas fa-comments text-success me-2"></i>Đánh giá sản phẩm</h4>
-            
+        <div class="col-lg-8 mx-auto">
+            <h4 class="mb-4 d-flex align-items-center">
+                <i class="fas fa-comments text-success me-2"></i>Đánh giá sản phẩm
+            </h4>
+
             @if (isLoggedIn)
             {
-                <div class="card shadow-sm mb-4 border-0 bg-light">
+                <div class="card shadow-sm mb-4 border-0" style="background:var(--bg-secondary);">
                     <div class="card-body">
                         <h6 class="card-title fw-bold">Viết đánh giá của bạn</h6>
-                        <form asp-controller="Review" asp-action="Submit" method="post">
+                        <form asp-controller="Review" asp-action="Submit" method="post" enctype="multipart/form-data">
                             <input type="hidden" name="fruitId" value="@Model.FruitId" />
                             <div class="mb-3">
-                                <label class="form-label text-muted small">Chất lượng (1-5 sao)</label>
+                                <label class="form-label text-muted small">Chất lượng (1-5 sao) <span class="text-danger">*</span></label>
                                 <div class="rating-stars mb-2" id="starRating">
-                                    <i class="far fa-star fs-4 text-warning" style="cursor:pointer" onclick="setRating(1)"></i>
-                                    <i class="far fa-star fs-4 text-warning" style="cursor:pointer" onclick="setRating(2)"></i>
-                                    <i class="far fa-star fs-4 text-warning" style="cursor:pointer" onclick="setRating(3)"></i>
-                                    <i class="far fa-star fs-4 text-warning" style="cursor:pointer" onclick="setRating(4)"></i>
-                                    <i class="far fa-star fs-4 text-warning" style="cursor:pointer" onclick="setRating(5)"></i>
+                                    @for (int i = 1; i <= 5; i++)
+                                    {
+                                        <i class="far fa-star fs-4 text-warning" style="cursor:pointer;" onclick="setRating(@i)"></i>
+                                    }
                                 </div>
-                                <input type="hidden" name="rating" id="ratingValue" value="0" required />
+                                <input type="hidden" name="rating" id="ratingValue" value="0" />
                             </div>
                             <div class="mb-3">
                                 <textarea name="comment" class="form-control" rows="3" placeholder="Chia sẻ cảm nhận của bạn về độ tươi, vị ngon... (tuỳ chọn)"></textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label text-muted small">Đính kèm ảnh (tối đa 3 ảnh)</label>
+                                <input type="file" name="images" class="form-control form-control-sm" multiple accept="image/*" />
                             </div>
                             <button type="submit" class="btn btn-success" id="btnSubmitReview" disabled>
                                 <i class="fas fa-paper-plane me-1"></i>Gửi đánh giá
@@ -155,40 +286,57 @@
             }
             else
             {
-                <div class="alert alert-info py-2">
-                    <i class="fas fa-info-circle me-2"></i>Vui lòng <a asp-controller="Account" asp-action="Login" class="alert-link">đăng nhập</a> để tham gia đánh giá.
+                <div class="alert alert-info d-flex align-items-center gap-2 py-2" style="border-radius:10px;border:none;background:var(--primary-pale);color:#065F46;">
+                    <i class="fas fa-info-circle"></i>
+                    Vui lòng <a asp-controller="Account" asp-action="Login" class="alert-link" style="color:#065F46;font-weight:600;">đăng nhập</a> để tham gia đánh giá.
                 </div>
             }
 
             <div class="reviews-list">
                 @if (ViewBag.Reviews == null || ((List<FruitShop.Models.Entities.Review>)ViewBag.Reviews).Count == 0)
                 {
-                    <p class="text-center text-muted py-4"><i class="far fa-comment-dots fs-1 d-block mb-3 text-light"></i>Chưa có đánh giá nào. Hãy là người đầu tiên!</p>
+                    <div class="text-center py-5" style="color:var(--text-muted);">
+                        <i class="far fa-comment-dots fs-1 d-block mb-3" style="opacity:0.3;"></i>
+                        <p>Chưa có đánh giá nào. Hãy là người đầu tiên!</p>
+                    </div>
                 }
                 else
                 {
                     foreach (var review in (List<FruitShop.Models.Entities.Review>)ViewBag.Reviews)
                     {
-                        <div class="d-flex gap-3 mb-4 pb-3 border-bottom">
-                            <div class="avatar bg-success text-white rounded-circle d-flex align-items-center justify-content-center" style="width:45px;height:45px;font-weight:600;font-size:18px">
-                                @(review.CustomerName.Substring(0, 1).ToUpper())
+                        <div class="d-flex gap-3 mb-4 pb-3 border-bottom" style="border-color:var(--border-light) !important;">
+                            <div class="flex-shrink-0">
+                                <div class="rounded-circle d-flex align-items-center justify-content-center bg-success text-white" style="width:45px;height:45px;font-weight:600;font-size:18px;">
+                                    @review.CustomerName.Substring(0, 1).ToUpper()
+                                </div>
                             </div>
-                            <div class="flex-fill">
-                                <div class="d-flex justify-content-between align-items-start">
+                            <div class="flex-grow-1">
+                                <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
                                     <div>
-                                        <h6 class="mb-1 fw-bold">@review.CustomerName</h6>
-                                        <div class="text-warning small mb-1">
+                                        <h6 class="mb-1 fw-bold" style="font-size:0.9rem;">@review.CustomerName</h6>
+                                        <div class="text-warning small">
                                             @for (int i = 1; i <= 5; i++)
                                             {
                                                 <i class="@(i <= review.Rating ? "fas" : "far") fa-star"></i>
                                             }
                                         </div>
                                     </div>
-                                    <small class="text-muted">@review.CreatedAt.ToString("dd/MM/yyyy")</small>
+                                    <small class="text-muted" style="font-size:0.78rem;">@review.CreatedAt.ToString("dd/MM/yyyy")</small>
                                 </div>
                                 @if (!string.IsNullOrEmpty(review.Comment))
                                 {
-                                    <p class="mb-0 mt-2">@review.Comment</p>
+                                    <p class="mb-0 mt-2" style="font-size:0.88rem;">@review.Comment</p>
+                                }
+                                @if (review.Images != null && review.Images.Any())
+                                {
+                                    <div class="d-flex gap-2 mt-3 flex-wrap">
+                                        @foreach (var img in review.Images)
+                                        {
+                                            <a href="~/images/reviews/@img.ImageUrl" target="_blank">
+                                                <img src="~/images/reviews/@img.ImageUrl" class="rounded border" style="width:80px;height:80px;object-fit:cover;" alt="Ảnh đánh giá" />
+                                            </a>
+                                        }
+                                    </div>
                                 }
                             </div>
                         </div>
@@ -200,56 +348,62 @@
 </div>
 
 @section Scripts {
-    <script>
-        function changeQty(delta) {
-            const el = document.getElementById('qty');
-            const val = Math.max(1, Math.min(Number(el.max), Number(el.value) + delta));
-            el.value = val;
-        }
+<script>
+    function changeQty(delta) {
+        var el = document.getElementById('qtyInput');
+        if (!el) return;
+        var val = Math.max(1, Math.min(Number(el.max), Number(el.value) + delta));
+        el.value = val;
+        var hidden = document.getElementById('hiddenQty');
+        if (hidden) hidden.value = val;
+    }
+    var qtyInput = document.getElementById('qtyInput');
+    if (qtyInput) {
+        qtyInput.addEventListener('change', function () {
+            var hidden = document.getElementById('hiddenQty');
+            if (hidden) hidden.value = this.value;
+        });
+    }
 
-        // Star rating
-        function setRating(rating) {
-            document.getElementById('ratingValue').value = rating;
-            document.getElementById('btnSubmitReview').disabled = false;
-            
-            const stars = document.getElementById('starRating').children;
-            for(let i=0; i<5; i++) {
-                if(i < rating) {
-                    stars[i].classList.replace('far', 'fas');
-                } else {
-                    stars[i].classList.replace('fas', 'far');
-                }
+    function setRating(rating) {
+        var ratingValue = document.getElementById('ratingValue');
+        var btn = document.getElementById('btnSubmitReview');
+        var stars = document.getElementById('starRating').children;
+        if (ratingValue) ratingValue.value = rating;
+        if (btn) btn.disabled = (rating === 0);
+        for (var i = 0; i < stars.length; i++) {
+            if (i < rating) {
+                if (stars[i].classList.contains('far')) stars[i].classList.replace('far', 'fas');
+            } else {
+                if (stars[i].classList.contains('fas')) stars[i].classList.replace('fas', 'far');
             }
         }
+    }
 
-        // Toggle Wishlist
-        function toggleWishlist(fruitId) {
-            fetch('/Wishlist/Toggle', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: new URLSearchParams({ fruitId: fruitId })
-            })
-            .then(res => res.json())
-            .then(data => {
-                if(data.success) {
-                    const btn = document.getElementById('btnWishlist');
-                    const icon = btn.querySelector('i');
-                    const text = document.getElementById('wishlistText');
-                    
-                    if(data.isInWishlist) {
-                        btn.classList.add('active');
-                        icon.classList.replace('far', 'fas');
-                        text.textContent = 'Đã lưu';
-                    } else {
-                        btn.classList.remove('active');
-                        icon.classList.replace('fas', 'far');
-                        text.textContent = 'Lưu yêu thích';
-                    }
+    function toggleWishlist(fruitId) {
+        fetch('/Wishlist/Toggle', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams({ fruitId: fruitId })
+        })
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+            if (data.success) {
+                var btn = document.getElementById('btnWishlist');
+                if (!btn) return;
+                var icon = btn.querySelector('i');
+                if (data.isInWishlist) {
+                    btn.classList.add('text-danger');
+                    icon.classList.replace('far', 'fas');
                 } else {
-                    alert(data.message);
+                    btn.classList.remove('text-danger');
+                    icon.classList.replace('fas', 'far');
                 }
-            })
-            .catch(err => console.error(err));
-        }
-    </script>
+            } else {
+                alert(data.message);
+            }
+        })
+        .catch(function(err) { console.error(err); });
+    }
+</script>
 }

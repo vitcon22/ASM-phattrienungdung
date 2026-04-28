@@ -1,0 +1,146 @@
+@{
+    ViewData["Title"] = "Báo cáo cuối ngày";
+    Layout = "_Layout";
+    var reportDate = (DateTime)ViewBag.ReportDate;
+    var orders = ViewBag.Orders as List<FruitShop.Models.Entities.Order> ?? new List<FruitShop.Models.Entities.Order>();
+    var lowStock = ViewBag.LowStockFruits as List<FruitShop.Models.Entities.Fruit> ?? new List<FruitShop.Models.Entities.Fruit>();
+}
+@section Breadcrumb {
+    <li class="breadcrumb-item"><a asp-action="Index">Dashboard</a></li>
+    <li class="breadcrumb-item active">Báo cáo cuối ngày</li>
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="page-title"><i class="fas fa-file-alt me-2 text-success"></i>Báo cáo cuối ngày</h4>
+    <form method="get" class="d-flex gap-2">
+        <input type="date" name="date" class="form-control" value="@reportDate.ToString("yyyy-MM-dd")" />
+        <button type="submit" class="btn btn-success"><i class="fas fa-search me-1"></i>Xem</button>
+        <button type="button" class="btn btn-outline-secondary" onclick="window.print()">
+            <i class="fas fa-print me-1"></i>In
+        </button>
+    </form>
+</div>
+
+<div class="alert alert-info">
+    <i class="fas fa-calendar-day me-2"></i>
+    Báo cáo cho ngày <strong>@reportDate.ToString("dd/MM/yyyy (dddd)")</strong>
+</div>
+
+<!-- Thống kê tổng quan -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="stat-card stat-card-green">
+            <div class="stat-icon"><i class="fas fa-dollar-sign"></i></div>
+            <div class="stat-info">
+                <div class="stat-label">Doanh thu trong ngày</div>
+                <div class="stat-value">@(((decimal)ViewBag.TotalRevenue).ToString("N0"))đ</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card stat-card-blue">
+            <div class="stat-icon"><i class="fas fa-shopping-bag"></i></div>
+            <div class="stat-info">
+                <div class="stat-label">Tổng đơn hàng</div>
+                <div class="stat-value">@ViewBag.TotalOrders</div>
+                <small class="text-muted">@ViewBag.ValidOrders hợp lệ / @ViewBag.CancelledOrders huỷ</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card stat-card-orange">
+            <div class="stat-icon"><i class="fas fa-clock"></i></div>
+            <div class="stat-info">
+                <div class="stat-label">Đơn chờ xử lý</div>
+                <div class="stat-value">@ViewBag.PendingOrders</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card stat-card-purple">
+            <div class="stat-icon"><i class="fas fa-warehouse"></i></div>
+            <div class="stat-info">
+                <div class="stat-label">Giá trị tồn kho</div>
+                <div class="stat-value">@(((decimal)ViewBag.TotalStockValue).ToString("N0"))đ</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Danh sách đơn hàng trong ngày -->
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="fas fa-list me-2"></i>Đơn hàng trong ngày</h6>
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-hover mb-0 align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Mã ĐH</th>
+                            <th>Khách hàng</th>
+                            <th>Thời gian</th>
+                            <th class="text-end">Tổng tiền</th>
+                            <th class="text-center">Trạng thái</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (!orders.Any())
+                        {
+                            <tr><td colspan="5" class="text-center py-4 text-muted">Không có đơn hàng nào trong ngày</td></tr>
+                        }
+                        @foreach (var o in orders.OrderByDescending(x => x.OrderDate))
+                        {
+                            <tr>
+                                <td><strong>#@o.OrderId</strong></td>
+                                <td>@o.CustomerName</td>
+                                <td class="small text-muted">@o.OrderDate.ToString("HH:mm")</td>
+                                <td class="text-end fw-bold text-success">@o.TotalAmount.ToString("N0")đ</td>
+                                <td class="text-center"><span class="badge bg-@o.GetStatusBadge()">@o.GetStatusText()</span></td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cảnh báo tồn kho -->
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header bg-warning bg-opacity-25">
+                <h6 class="mb-0"><i class="fas fa-exclamation-triangle me-2 text-warning"></i>Cảnh báo tồn kho thấp</h6>
+            </div>
+            <div class="card-body p-0">
+                @if (!lowStock.Any())
+                {
+                    <div class="text-center text-muted py-4">
+                        <i class="fas fa-check-circle fa-2x text-success mb-2"></i>
+                        <div>Không có sản phẩm nào sắp hết</div>
+                    </div>
+                }
+                else
+                {
+                    <ul class="list-group list-group-flush">
+                        @foreach (var f in lowStock)
+                        {
+                            <li class="list-group-item d-flex justify-content-between">
+                                <span><small>@f.FruitName</small></span>
+                                <span class="badge bg-@(f.StockQuantity == 0 ? "danger" : "warning") text-dark">
+                                    @f.StockQuantity @f.Unit
+                                </span>
+                            </li>
+                        }
+                    </ul>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    @@media print {
+        .page-title ~ form, .btn, nav, .sidebar, header { display: none !important; }
+    }
+</style>

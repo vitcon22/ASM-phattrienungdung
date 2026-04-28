@@ -1,0 +1,136 @@
+@model FruitShop.Models.Entities.User
+@{
+    ViewData["Title"] = $"Chi tiết khách hàng - {Model.FullName}";
+    Layout = "_Layout";
+    var orders = ViewBag.Orders as List<FruitShop.Models.Entities.Order> ?? new List<FruitShop.Models.Entities.Order>();
+}
+@section Breadcrumb {
+    <li class="breadcrumb-item"><a asp-action="Index">Khách hàng</a></li>
+    <li class="breadcrumb-item active">@Model.FullName</li>
+}
+
+<div class="row g-4">
+    <!-- Thông tin khách hàng -->
+    <div class="col-lg-4">
+        <div class="card shadow-sm">
+            <div class="card-body text-center">
+                <div class="mb-3">
+                    <div class="rounded-circle bg-success bg-opacity-10 d-inline-flex align-items-center justify-content-center"
+                         style="width:100px;height:100px">
+                        <i class="fas fa-user fa-3x text-success"></i>
+                    </div>
+                </div>
+                <h5 class="mb-1 fw-bold">@Model.FullName</h5>
+                <div class="mb-2">
+                    <span class="badge bg-warning text-dark"><i class="fas fa-medal me-1"></i>Hạng @Model.Tier</span>
+                    <span class="badge @(Model.IsActive ? "bg-success" : "bg-secondary")">
+                        @(Model.IsActive ? "Hoạt động" : "Khoá")
+                    </span>
+                </div>
+                
+                <div class="p-3 bg-light rounded border my-3">
+                    <div class="text-muted small mb-1">Điểm tích lũy</div>
+                    <h4 class="text-success fw-bold mb-0">@Model.Points.ToString("N0")</h4>
+                </div>
+
+                <div class="text-start small">
+                    <div class="mb-2"><i class="fas fa-envelope text-muted me-2" style="width:15px"></i>@Model.Email</div>
+                    <div class="mb-2"><i class="fas fa-phone text-muted me-2" style="width:15px"></i>@(Model.Phone ?? "—")</div>
+                    <div class="mb-2"><i class="fas fa-map-marker-alt text-muted me-2" style="width:15px"></i>@(Model.Address ?? "—")</div>
+                    <div class="mb-2"><i class="fas fa-calendar-alt text-muted me-2" style="width:15px"></i>Tham gia: @Model.CreatedAt.ToString("dd/MM/yyyy")</div>
+                </div>
+
+                <hr />
+                <div class="d-grid gap-2">
+                    <form asp-action="ToggleActive" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="id" value="@Model.UserId" />
+                        <button type="submit" class="btn @(Model.IsActive ? "btn-outline-warning" : "btn-outline-success") w-100 btn-sm">
+                            <i class="fas fa-@(Model.IsActive ? "lock" : "lock-open") me-1"></i>
+                            @(Model.IsActive ? "Khoá tài khoản" : "Mở tài khoản")
+                        </button>
+                    </form>
+                    <a asp-action="Index" class="btn btn-outline-secondary btn-sm">
+                        <i class="fas fa-arrow-left me-1"></i>Quay lại danh sách
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Thống kê & Lịch sử đơn hàng -->
+    <div class="col-lg-8">
+        <div class="row g-3 mb-4">
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body text-center">
+                        <div class="text-muted small">Số đơn hàng</div>
+                        <h3 class="text-success fw-bold mb-0">@ViewBag.TotalOrders</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body text-center">
+                        <div class="text-muted small">Tổng chi tiêu</div>
+                        <h3 class="text-primary fw-bold mb-0">@(((decimal)(ViewBag.TotalSpent ?? 0m)).ToString("N0"))đ</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body text-center">
+                        <div class="text-muted small">Đơn gần nhất</div>
+                        <h6 class="text-warning fw-bold mb-0 mt-2">
+                            @(ViewBag.LastOrder != null ? ((DateTime)ViewBag.LastOrder).ToString("dd/MM/yyyy") : "—")
+                        </h6>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white py-3">
+                <h6 class="mb-0 fw-bold"><i class="fas fa-history me-2 text-success"></i>Lịch sử mua hàng</h6>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0 align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="ps-3">Mã ĐH</th>
+                                <th>Ngày đặt</th>
+                                <th class="text-end">Giá trị</th>
+                                <th class="text-center">Trạng thái</th>
+                                <th class="text-center">Hành động</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (!orders.Any())
+                            {
+                                <tr><td colspan="5" class="text-center py-5 text-muted">Chưa có giao dịch nào</td></tr>
+                            }
+                            @foreach (var o in orders.OrderByDescending(x => x.OrderDate))
+                            {
+                                <tr>
+                                    <td class="ps-3"><strong>#@o.OrderId</strong></td>
+                                    <td class="small text-muted">@o.OrderDate.ToString("dd/MM/yyyy HH:mm")</td>
+                                    <td class="text-end fw-bold text-success">@o.TotalAmount.ToString("N0")đ</td>
+                                    <td class="text-center">
+                                        <span class="badge bg-@o.GetStatusBadge()">@o.GetStatusText()</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <a asp-controller="Order" asp-action="Details" asp-route-id="@o.OrderId"
+                                           class="btn btn-sm btn-light border">
+                                            <i class="fas fa-eye text-primary"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

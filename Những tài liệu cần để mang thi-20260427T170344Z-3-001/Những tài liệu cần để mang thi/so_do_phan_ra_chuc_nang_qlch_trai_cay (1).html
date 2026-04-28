@@ -1,0 +1,175 @@
+
+<h2 class="sr-only">Sơ đồ phân rã chức năng – Hệ Thống Quản Lý Cửa Hàng Trái Cây</h2>
+<style>
+#fdd *{box-sizing:border-box;margin:0;padding:0}
+#fdd{position:relative;padding:16px 6px 28px;font-family:var(--font-sans)}
+#fdd-svg{position:absolute;top:0;left:0;pointer-events:none;overflow:visible}
+.root-row{display:flex;justify-content:center;margin-bottom:44px}
+.root-box{
+  padding:10px 32px;border-radius:8px;font-size:13px;font-weight:500;white-space:nowrap;
+  background:#EEEDFE;border:1px solid #534AB7;color:#3C3489
+}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);column-gap:8px;row-gap:28px}
+.l1{
+  padding:7px 8px;border-radius:6px;font-size:11px;font-weight:500;
+  text-align:center;margin-bottom:5px;line-height:1.45;
+  min-height:36px;display:flex;align-items:center;justify-content:center;
+  background:#E1F5EE;border:0.5px solid #0F6E56;color:#085041
+}
+.l2s{display:flex;flex-direction:column;gap:2px}
+.l2{
+  padding:3px 7px;border-radius:4px;font-size:10px;line-height:1.35;
+  color:var(--color-text-secondary);
+  background:var(--color-background-primary);
+  border:0.5px solid var(--color-border-tertiary)
+}
+@media(prefers-color-scheme:dark){
+  .root-box{background:#26215C;border-color:#AFA9EC;color:#CECBF6}
+  .l1{background:#04342C;border-color:#5DCAA5;color:#9FE1CB}
+}
+</style>
+
+<div id="fdd">
+<svg id="fdd-svg" fill="none"></svg>
+
+<div class="root-row">
+  <div class="root-box" id="r0">Hệ Thống Quản Lý Cửa Hàng Trái Cây</div>
+</div>
+
+<div class="grid">
+  <div id="m0">
+    <div class="l1">Xác thực &amp; Phân quyền</div>
+    <div class="l2s">
+      <div class="l2">Đăng nhập / Đăng xuất</div>
+      <div class="l2">Đăng ký tài khoản</div>
+      <div class="l2">Phân quyền người dùng</div>
+      <div class="l2">Đổi / Đặt lại mật khẩu</div>
+      <div class="l2">Khóa / Mở tài khoản</div>
+    </div>
+  </div>
+
+  <div id="m1">
+    <div class="l1">Quản lý Sản phẩm</div>
+    <div class="l2s">
+      <div class="l2">Thêm / Sửa / Xóa SP</div>
+      <div class="l2">Quản lý danh mục</div>
+      <div class="l2">Tìm kiếm &amp; Lọc SP</div>
+      <div class="l2">Upload hình ảnh SP</div>
+      <div class="l2">Bật / Tắt hiệu lực SP</div>
+    </div>
+  </div>
+
+  <div id="m2">
+    <div class="l1">Quản lý Kho hàng</div>
+    <div class="l2s">
+      <div class="l2">Nhập hàng từ NCC</div>
+      <div class="l2">Ghi nhận hàng hỏng</div>
+      <div class="l2">Log &amp; Lịch sử tồn kho</div>
+      <div class="l2">Cảnh báo tồn kho thấp</div>
+      <div class="l2">Quản lý lô &amp; hạn dùng</div>
+    </div>
+  </div>
+
+  <div id="m3">
+    <div class="l1">Quản lý Đơn hàng</div>
+    <div class="l2s">
+      <div class="l2">Tạo đơn / Giỏ hàng</div>
+      <div class="l2">Thanh toán đa phương thức</div>
+      <div class="l2">Áp dụng mã giảm giá</div>
+      <div class="l2">Cập nhật trạng thái đơn</div>
+      <div class="l2">Hủy đơn hàng</div>
+      <div class="l2">In hóa đơn / QR code</div>
+      <div class="l2">Tìm kiếm &amp; Lịch sử đơn</div>
+    </div>
+  </div>
+
+  <div id="m4">
+    <div class="l1">Storefront (Khách hàng)</div>
+    <div class="l2s">
+      <div class="l2">Trang chủ &amp; DS sản phẩm</div>
+      <div class="l2">Tìm kiếm &amp; Lọc SP</div>
+      <div class="l2">Giỏ hàng &amp; Thanh toán</div>
+      <div class="l2">Wishlist yêu thích</div>
+      <div class="l2">Đánh giá sản phẩm</div>
+    </div>
+  </div>
+
+  <div id="m5">
+    <div class="l1">Quản lý Khách hàng</div>
+    <div class="l2s">
+      <div class="l2">Thông tin khách hàng</div>
+      <div class="l2">Lịch sử mua hàng</div>
+      <div class="l2">Phân loại hạng KH</div>
+      <div class="l2">Điểm tích lũy KH</div>
+    </div>
+  </div>
+
+  <div id="m6">
+    <div class="l1">Khuyến mãi</div>
+    <div class="l2s">
+      <div class="l2">Tạo &amp; Quản lý coupon</div>
+      <div class="l2">Áp dụng mã giảm giá</div>
+      <div class="l2">Vô hiệu hóa coupon</div>
+    </div>
+  </div>
+
+  <div id="m7">
+    <div class="l1">Báo cáo &amp; Thống kê</div>
+    <div class="l2s">
+      <div class="l2">Dashboard tổng quan</div>
+      <div class="l2">Báo cáo doanh thu</div>
+      <div class="l2">Thống kê bán chạy</div>
+      <div class="l2">Báo cáo lợi nhuận</div>
+      <div class="l2">Xuất báo cáo Excel / PDF</div>
+    </div>
+  </div>
+</div>
+</div>
+
+<script>
+(function(){
+function draw(){
+  var fdd=document.getElementById('fdd');
+  var svg=document.getElementById('fdd-svg');
+  var root=document.getElementById('r0');
+  var W=fdd.offsetWidth,H=fdd.offsetHeight;
+  svg.setAttribute('width',W);svg.setAttribute('height',H);
+  var fR=fdd.getBoundingClientRect();
+  var rR=root.getBoundingClientRect();
+  var rCX=rR.left-fR.left+rR.width/2;
+  var rBY=rR.bottom-fR.top;
+  var mods=[0,1,2,3,4,5,6,7].map(function(i){
+    var el=document.getElementById('m'+i);
+    var l1=el.querySelector('.l1');
+    var eR=el.getBoundingClientRect();
+    var l1R=l1.getBoundingClientRect();
+    return{cx:eR.left-fR.left+eR.width/2,l1Top:l1R.top-fR.top,l1Bot:l1R.bottom-fR.top};
+  });
+  var row1=mods.slice(0,4),row2=mods.slice(4,8);
+  var r1Top=Math.min.apply(null,row1.map(function(d){return d.l1Top;}));
+  var r1Bot=Math.max.apply(null,row1.map(function(d){return d.l1Bot;}));
+  var r2Top=Math.min.apply(null,row2.map(function(d){return d.l1Top;}));
+  var midY1=Math.round((rBY+r1Top)/2);
+  var midY2=Math.round((r1Bot+r2Top)/2);
+  var r1MinX=Math.round(Math.min.apply(null,row1.map(function(d){return d.cx;})));
+  var r1MaxX=Math.round(Math.max.apply(null,row1.map(function(d){return d.cx;})));
+  var r2MinX=Math.round(Math.min.apply(null,row2.map(function(d){return d.cx;})));
+  var r2MaxX=Math.round(Math.max.apply(null,row2.map(function(d){return d.cx;})));
+  var dark=matchMedia('(prefers-color-scheme:dark)').matches;
+  var sc=dark?'rgba(155,153,145,0.45)':'rgba(80,78,75,0.32)';
+  function L(x1,y1,x2,y2){return'<line x1="'+Math.round(x1)+'" y1="'+Math.round(y1)+'" x2="'+Math.round(x2)+'" y2="'+Math.round(y2)+'" stroke="'+sc+'" stroke-width="1"/>';}
+  var s='';
+  s+=L(rCX,rBY,rCX,midY1);
+  s+=L(r1MinX,midY1,r1MaxX,midY1);
+  row1.forEach(function(d){s+=L(d.cx,midY1,d.cx,d.l1Top);});
+  s+=L(rCX,midY1,rCX,midY2);
+  s+=L(r2MinX,midY2,r2MaxX,midY2);
+  row2.forEach(function(d){s+=L(d.cx,midY2,d.cx,d.l1Top);});
+  svg.innerHTML=s;
+}
+if(document.readyState==='loading'){
+  document.addEventListener('DOMContentLoaded',function(){setTimeout(draw,120);});
+}else{setTimeout(draw,120);}
+window.addEventListener('resize',draw);
+})();
+</script>

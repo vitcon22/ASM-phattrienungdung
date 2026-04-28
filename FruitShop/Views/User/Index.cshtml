@@ -11,8 +11,14 @@
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h4 class="page-title"><i class="fas fa-users me-2 text-success"></i>Quản lý người dùng</h4>
     <div class="d-flex gap-2">
+        <a asp-action="Create" class="btn btn-success btn-sm">
+            <i class="fas fa-user-plus me-1"></i>Tạo tài khoản
+        </a>
         <a asp-action="ExportCsv" class="btn btn-outline-success btn-sm">
-            <i class="fas fa-file-csv me-1"></i>Xuất CSV
+            <i class="fas fa-file-csv me-1"></i>CSV
+        </a>
+        <a asp-action="ExportExcel" class="btn btn-outline-success btn-sm">
+            <i class="fas fa-file-excel me-1"></i>Excel
         </a>
         <span class="badge bg-primary fs-6 d-flex align-items-center">@Model.TotalCount người</span>
     </div>
@@ -100,7 +106,7 @@
                 }
                 @foreach (var user in Model.Items)
                 {
-                    var myId = int.Parse(Context.Session.GetString("UserId") ?? "0");
+                    var myId = int.TryParse(Context.Session.GetString("UserId"), out var sid) ? sid : 0;
                     <tr class="@(!user.IsActive ? "table-danger" : "")">
                         <td class="text-muted small">@user.UserId</td>
                         <td>
@@ -137,10 +143,24 @@
                         <td class="small text-muted">@user.CreatedAt.ToString("dd/MM/yyyy")</td>
                         <td class="text-center">
                             <div class="d-flex gap-1 justify-content-center">
+                                @if (user.RoleName != "Customer")
+                                {
+                                    <a asp-action="Edit" asp-route-id="@user.UserId"
+                                       class="btn btn-sm btn-outline-warning" title="Sửa tài khoản">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                }
                                 <a asp-action="Details" asp-route-id="@user.UserId"
                                    class="btn btn-sm btn-outline-primary" title="Xem chi tiết">
                                     <i class="fas fa-eye"></i>
                                 </a>
+                                @if (user.UserId != myId && user.RoleName != "Customer")
+                                {
+                                    <a asp-action="Delete" asp-route-id="@user.UserId"
+                                       class="btn btn-sm btn-outline-danger" title="Xóa tài khoản">
+                                        <i class="fas fa-trash"></i>
+                                    </a>
+                                }
                                 @if (user.UserId != myId)
                                 {
                                     <form asp-action="ToggleActive" method="post">

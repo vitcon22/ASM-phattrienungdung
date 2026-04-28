@@ -1,0 +1,80 @@
+@model FruitShop.Models.Entities.User
+@{
+    ViewData["Title"] = "Sửa tài khoản";
+    Layout = "_Layout";
+}
+@section Breadcrumb {
+    <li class="breadcrumb-item"><a asp-action="Index">Người dùng</a></li>
+    <li class="breadcrumb-item active">@Model.FullName</li>
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-7">
+        <div class="card shadow">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="mb-0"><i class="fas fa-edit me-2"></i>Chỉnh sửa tài khoản — @Model.FullName</h5>
+            </div>
+            <div class="card-body">
+                <form asp-action="Edit" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" asp-for="UserId" />
+                    <input type="hidden" asp-for="Email" />
+                    <input type="hidden" asp-for="Password" />
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Họ tên <span class="text-danger">*</span></label>
+                            <input asp-for="FullName" class="form-control" />
+                            <span asp-validation-for="FullName" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Vai trò <span class="text-danger">*</span></label>
+                            <select asp-for="RoleId" class="form-select">
+                                @foreach (var r in ViewBag.Roles)
+                                {
+                                    <option value="@r.RoleId">@r.RoleName</option>
+                                }
+                            </select>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Điện thoại</label>
+                            <input asp-for="Phone" class="form-control" placeholder="VD: 0912345678" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Địa chỉ</label>
+                            <input asp-for="Address" class="form-control" />
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Trạng thái</label>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" asp-for="IsActive" />
+                                <label class="form-check-label" asp-for="IsActive">
+                                    @(Model.IsActive ? "Hoạt động" : "Đã khoá")
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Đổi mật khẩu mới</label>
+                            <input type="password" name="newPassword" class="form-control"
+                                   placeholder="Để trống nếu không đổi mật khẩu (tối thiểu 6 ký tự)" minlength="6" />
+                            <div class="form-text">Chỉ nhập nếu muốn đổi mật khẩu. Để trống = giữ nguyên.</div>
+                        </div>
+                    </div>
+
+                    <hr class="my-4" />
+                    <div class="d-flex justify-content-between">
+                        <a asp-action="Index" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left me-1"></i>Quay lại
+                        </a>
+                        <button type="submit" class="btn btn-warning text-dark">
+                            <i class="fas fa-save me-1"></i>Lưu thay đổi
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

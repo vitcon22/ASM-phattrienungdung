@@ -19,8 +19,9 @@ namespace FruitShop.Models.DAL
         /// <summary>
         /// Lấy đơn hàng với phân trang và lọc (Staff/Admin)
         /// </summary>
-        public (IEnumerable<Order> Items, int TotalCount) Search(
-            string? status, DateTime? fromDate, DateTime? toDate, int page, int pageSize)
+        public virtual (IEnumerable<Order> Items, int TotalCount) Search(
+            string? status, DateTime? fromDate, DateTime? toDate, string? keyword,
+            int page, int pageSize)
         {
             using var conn = _context.CreateConnection();
 
@@ -28,10 +29,15 @@ namespace FruitShop.Models.DAL
             if (!string.IsNullOrEmpty(status)) conditions.Add("o.Status = @Status");
             if (fromDate.HasValue) conditions.Add("o.OrderDate >= @FromDate");
             if (toDate.HasValue)  conditions.Add("o.OrderDate < DATEADD(day,1,@ToDate)");
+            if (!string.IsNullOrWhiteSpace(keyword))
+                conditions.Add("(CAST(o.OrderId AS NVARCHAR) LIKE @Keyword OR u.FullName LIKE @Keyword OR u.Phone LIKE @Keyword)");
 
             var where = conditions.Count > 0 ? "WHERE " + string.Join(" AND ", conditions) : "";
 
-            var countSql = $"SELECT COUNT(*) FROM Orders o {where}";
+            var countSql = $@"
+                SELECT COUNT(*) FROM Orders o
+                INNER JOIN Users u ON o.UserId = u.UserId
+                {where}";
             var dataSql = $@"
                 SELECT o.*, u.FullName AS CustomerName
                 FROM Orders o
@@ -45,6 +51,7 @@ namespace FruitShop.Models.DAL
                 Status   = status,
                 FromDate = fromDate,
                 ToDate   = toDate,
+                Keyword  = $"%{keyword}%",
                 Offset   = (page - 1) * pageSize,
                 PageSize = pageSize
             };
@@ -54,10 +61,20 @@ namespace FruitShop.Models.DAL
             return (items, total);
         }
 
+        /// <summary>Tổng doanh thu của 1 khách (đơn Delivered)</summary>
+        public virtual decimal GetCustomerTotalSpent(int userId)
+        {
+            using var conn = _context.CreateConnection();
+            const string sql = @"
+                SELECT ISNULL(SUM(TotalAmount), 0) FROM Orders
+                WHERE UserId = @UserId AND Status = 'Delivered'";
+            return conn.ExecuteScalar<decimal>(sql, new { UserId = userId });
+        }
+
         /// <summary>
         /// Lấy đơn hàng của một customer cụ thể
         /// </summary>
-        public IEnumerable<Order> GetByCustomer(int userId)
+        public virtual IEnumerable<Order> GetByCustomer(int userId)
         {
             using var conn = _context.CreateConnection();
             const string sql = @"
@@ -71,7 +88,7 @@ namespace FruitShop.Models.DAL
         /// <summary>
         /// Lấy chi tiết đơn hàng theo ID
         /// </summary>
-        public Order? GetById(int orderId)
+        public virtual Order? GetById(int orderId)
         {
             using var conn = _context.CreateConnection();
             const string orderSql = @"
@@ -97,7 +114,7 @@ namespace FruitShop.Models.DAL
         /// <summary>
         /// Đếm số đơn hàng theo trạng thái
         /// </summary>
-        public Dictionary<string, int> CountByStatus()
+        public virtual Dictionary<string, int> CountByStatus()
         {
             using var conn = _context.CreateConnection();
             const string sql = "SELECT Status, COUNT(*) AS Cnt FROM Orders GROUP BY Status";
@@ -108,7 +125,7 @@ namespace FruitShop.Models.DAL
         /// <summary>
         /// Tổng số đơn hàng
         /// </summary>
-        public int CountAll()
+        public virtual int CountAll()
         {
             using var conn = _context.CreateConnection();
             return conn.ExecuteScalar<int>("SELECT COUNT(*) FROM Orders");
@@ -117,7 +134,7 @@ namespace FruitShop.Models.DAL
         /// <summary>
         /// Tính doanh thu hôm nay / tháng / năm (không tính Pending và Cancelled)
         /// </summary>
-        public decimal GetRevenue(string period)
+        public virtual decimal GetRevenue(string period, int? month = null, int? year = null)
         {
             using var conn = _context.CreateConnection();
             var sql = period switch
@@ -128,21 +145,25 @@ namespace FruitShop.Models.DAL
                       AND Status NOT IN ('Cancelled', 'Pending')",
                 "month" => @"
                     SELECT ISNULL(SUM(TotalAmount), 0) FROM Orders
-                    WHERE MONTH(OrderDate) = MONTH(GETDATE()) AND YEAR(OrderDate) = YEAR(GETDATE())
+                    WHERE MONTH(OrderDate) = @Month AND YEAR(OrderDate) = @Year
                       AND Status NOT IN ('Cancelled', 'Pending')",
                 "year" => @"
                     SELECT ISNULL(SUM(TotalAmount), 0) FROM Orders
-                    WHERE YEAR(OrderDate) = YEAR(GETDATE())
+                    WHERE YEAR(OrderDate) = @Year
                       AND Status NOT IN ('Cancelled', 'Pending')",
                 _ => "SELECT 0"
             };
-            return conn.ExecuteScalar<decimal>(sql);
+            if (period == "today" || period == "_")
+                return conn.ExecuteScalar<decimal>(sql);
+            var m = month ?? DateTime.Now.Month;
+            var y = year  ?? DateTime.Now.Year;
+            return conn.ExecuteScalar<decimal>(sql, new { Month = m, Year = y });
         }
 
         /// <summary>
         /// Doanh thu 7 ngày gần nhất (cho Line chart Dashboard)
         /// </summary>
-        public IEnumerable<RevenueByDay> GetLast7DaysRevenue()
+        public virtual IEnumerable<RevenueByDay> GetLast7DaysRevenue()
         {
             using var conn = _context.CreateConnection();
             const string sql = @"
@@ -160,21 +181,26 @@ namespace FruitShop.Models.DAL
         /// <summary>
         /// Tạo đơn hàng mới (transaction: insert Order + OrderDetails + trừ tồn kho)
         /// </summary>
-        public int CreateOrder(Order order, List<CartItemViewModel> cartItems)
+        public virtual int CreateOrder(Order order, List<CartItemViewModel> cartItems, int pointsRedeemed = 0, decimal pointsDiscount = 0)
         {
             using var conn = _context.CreateConnection();
             conn.Open();
             using var tran = conn.BeginTransaction();
             try
             {
-                // Tính tổng tiền sau khi giảm giá
-                order.TotalAmount = cartItems.Sum(x => x.UnitPrice * x.Quantity) - order.DiscountAmount;
+                // Tính tổng tiền sau khi giảm giá (coupon + points)
+                decimal subtotal = cartItems.Sum(x => x.UnitPrice * x.Quantity);
+                order.TotalAmount = subtotal - order.DiscountAmount - pointsDiscount;
                 if (order.TotalAmount < 0) order.TotalAmount = 0;
+
+                // RQ35: lưu points đã dùng
+                order.PointsRedeemed = pointsRedeemed;
+                order.PointsDiscount = pointsDiscount;
 
                 // Thêm đơn hàng
                 const string orderSql = @"
-                    INSERT INTO Orders (UserId, TotalAmount, Status, ShippingAddress, Note, CreatedBy, CouponId, DiscountAmount)
-                    VALUES (@UserId, @TotalAmount, @Status, @ShippingAddress, @Note, @CreatedBy, @CouponId, @DiscountAmount);
+                    INSERT INTO Orders (UserId, TotalAmount, Status, ShippingAddress, Note, CreatedBy, CouponId, DiscountAmount, PaymentMethod, AmountReceived, PointsRedeemed, PointsDiscount)
+                    VALUES (@UserId, @TotalAmount, @Status, @ShippingAddress, @Note, @CreatedBy, @CouponId, @DiscountAmount, @PaymentMethod, @AmountReceived, @PointsRedeemed, @PointsDiscount);
                     SELECT CAST(SCOPE_IDENTITY() AS INT)";
                 int orderId = conn.ExecuteScalar<int>(orderSql, order, tran);
 
@@ -212,7 +238,7 @@ namespace FruitShop.Models.DAL
         /// <summary>
         /// Cập nhật trạng thái đơn hàng (Staff/Admin)
         /// </summary>
-        public void UpdateStatus(int orderId, string status, int staffId)
+        public virtual void UpdateStatus(int orderId, string status, int staffId)
         {
             using var conn = _context.CreateConnection();
             const string sql = @"
@@ -222,7 +248,7 @@ namespace FruitShop.Models.DAL
         }
 
         /// <summary>Customer huỷ đơn hàng khi còn Pending</summary>
-        public bool CancelOrder(int orderId, int userId)
+        public virtual bool CancelOrder(int orderId, int userId)
         {
             using var conn = _context.CreateConnection();
             const string sql = @"
@@ -232,7 +258,7 @@ namespace FruitShop.Models.DAL
         }
 
         /// <summary>Lấy N đơn hàng gần nhất (cho Dashboard)</summary>
-        public IEnumerable<Order> GetRecent(int count = 10)
+        public virtual IEnumerable<Order> GetRecent(int count = 10)
         {
             using var conn = _context.CreateConnection();
             var sql = $@"
@@ -244,7 +270,7 @@ namespace FruitShop.Models.DAL
         }
 
         /// <summary>Lấy tất cả đơn hàng để export CSV</summary>
-        public IEnumerable<Order> GetAllForExport(string? status = null, DateTime? fromDate = null, DateTime? toDate = null)
+        public virtual IEnumerable<Order> GetAllForExport(string? status = null, DateTime? fromDate = null, DateTime? toDate = null)
         {
             using var conn = _context.CreateConnection();
             var conditions = new List<string>();
@@ -259,6 +285,22 @@ namespace FruitShop.Models.DAL
                 {where}
                 ORDER BY o.OrderDate DESC";
             return conn.Query<Order>(sql, new { Status = status, FromDate = fromDate, ToDate = toDate });
+        }
+
+        // --- Phase 3: Advanced Charts ---
+        public virtual IEnumerable<RevenueByCategory> GetRevenueByCategory()
+        {
+            using var conn = _context.CreateConnection();
+            const string sql = @"
+                SELECT c.CategoryName, ISNULL(SUM(od.Quantity * od.UnitPrice), 0) AS Revenue
+                FROM OrderDetails od
+                INNER JOIN Fruits f ON od.FruitId = f.FruitId
+                INNER JOIN Categories c ON f.CategoryId = c.CategoryId
+                INNER JOIN Orders o ON od.OrderId = o.OrderId
+                WHERE o.Status NOT IN ('Cancelled', 'Pending')
+                GROUP BY c.CategoryName
+                ORDER BY Revenue DESC";
+            return conn.Query<RevenueByCategory>(sql);
         }
     }
 }

@@ -1,0 +1,236 @@
+@model IEnumerable<FruitShop.Models.ViewModels.CategoryInventoryReportItem>
+@{
+    ViewData["Title"] = "Báo cáo tồn kho theo danh mục";
+    Layout = "_Layout";
+
+    var catLabels = string.Join(",", Model.Select(x => $"'{x.CategoryName}'"));
+    var catQty    = string.Join(",", Model.Select(x => x.TotalQuantity));
+    var catVal    = string.Join(",", Model.Select(x => x.TotalValue));
+}
+@section Breadcrumb {
+    <li class="breadcrumb-item"><a href="@Url.Action("Index", "Dashboard")">Dashboard</a></li>
+    <li class="breadcrumb-item active">Báo cáo tồn kho</li>
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="page-title mb-0">
+        <i class="fas fa-layer-group text-primary me-2"></i>Báo cáo tồn kho theo danh mục
+    </h4>
+    <div class="d-flex gap-2">
+        <a asp-action="ExportCategoryReportExcel" asp-route-categoryId="@ViewBag.SelectedCategoryId"
+           class="btn btn-success btn-sm">
+            <i class="fas fa-file-excel me-1"></i>Xuất Excel
+        </a>
+        <a asp-action="Index" class="btn btn-outline-secondary btn-sm">
+            <i class="fas fa-arrow-left me-1"></i>Dashboard
+        </a>
+    </div>
+</div>
+
+<form method="get" class="card mb-4">
+    <div class="card-body">
+        <div class="row g-3 align-items-end">
+            <div class="col-md-6">
+                <label class="form-label small fw-semibold text-muted">Danh mục</label>
+                <select name="categoryId" class="form-select">
+                    <option value="">-- Tất cả danh mục --</option>
+                    @if (ViewBag.Categories != null)
+                    {
+                        foreach (var cat in (IEnumerable<SelectListItem>)ViewBag.Categories)
+                        {
+                            <option value="@cat.Value" selected="@(cat.Selected)">@cat.Text</option>
+                        }
+                    }
+                </select>
+            </div>
+            <div class="col-md-4 d-flex gap-2">
+                <button type="submit" class="btn btn-primary flex-fill">
+                    <i class="fas fa-filter me-1"></i>Lọc
+                </button>
+                <a asp-action="CategoryReport" class="btn btn-outline-secondary">Reset</a>
+            </div>
+        </div>
+    </div>
+</form>
+
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm text-center py-3">
+            <div class="card-body">
+                <div class="text-muted small fw-semibold text-uppercase">Tổng sản phẩm</div>
+                <div class="text-success fw-bold fs-4">@Model.Sum(x => x.TotalProducts)</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm text-center py-3">
+            <div class="card-body">
+                <div class="text-muted small fw-semibold text-uppercase">Tổng tồn kho</div>
+                <div class="text-primary fw-bold fs-4">@Model.Sum(x => x.TotalQuantity).ToString("N0")</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm text-center py-3">
+            <div class="card-body">
+                <div class="text-muted small fw-semibold text-uppercase">Giá trị tồn kho</div>
+                <div class="text-warning fw-bold fs-4">@Model.Sum(x => x.TotalValue).ToString("N0") đ</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm text-center py-3">
+            <div class="card-body">
+                <div class="text-muted small fw-semibold text-uppercase">Cảnh báo</div>
+                <div class="text-danger fw-bold fs-4">
+                    @(Model.Sum(x => x.LowStockCount) + Model.Sum(x => x.OutOfStockCount))
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts -->
+@if (Model.Any())
+{
+    <div class="row g-4 mb-4">
+        <div class="col-lg-6">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h6 class="mb-0 fw-bold"><i class="fas fa-chart-bar me-2 text-primary"></i>Số lượng tồn kho theo danh mục</h6>
+                </div>
+                <div class="card-body">
+                    <canvas id="qtyChart" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h6 class="mb-0 fw-bold"><i class="fas fa-chart-pie me-2 text-warning"></i>Giá trị tồn kho theo danh mục</h6>
+                </div>
+                <div class="card-body">
+                    <canvas id="valChart" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<div class="card shadow-sm border-0">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Danh mục</th>
+                        <th class="text-center">Sản phẩm</th>
+                        <th class="text-center">Tổng tồn kho</th>
+                        <th class="text-end">Giá trị (đ)</th>
+                        <th class="text-center">Sắp hết</th>
+                        <th class="text-center">Hết hàng</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @{
+                        var totalVal = Model.Sum(x => x.TotalValue);
+                    }
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td><strong>@item.CategoryName</strong></td>
+                            <td class="text-center">@item.TotalProducts</td>
+                            <td class="text-center">@item.TotalQuantity.ToString("N0")</td>
+                            <td class="text-end fw-bold text-success">
+                                @item.TotalValue.ToString("N0")
+                                <span class="text-muted small">(@(totalVal > 0 ? (item.TotalValue / totalVal * 100).ToString("N1") : "0")%)</span>
+                            </td>
+                            <td class="text-center">
+                                @if (item.LowStockCount > 0)
+                                {
+                                    <span class="badge bg-warning text-dark">@item.LowStockCount</span>
+                                }
+                                else { <span class="text-muted">0</span> }
+                            </td>
+                            <td class="text-center">
+                                @if (item.OutOfStockCount > 0)
+                                {
+                                    <span class="badge bg-danger">@item.OutOfStockCount</span>
+                                }
+                                else { <span class="text-muted">0</span> }
+                            </td>
+                        </tr>
+                    }
+                    @if (!Model.Any())
+                    {
+                        <tr><td colspan="6" class="text-center text-muted py-4"><i class="fas fa-inbox fa-2x mb-2 d-block"></i>Không có dữ liệu</td></tr>
+                    }
+                </tbody>
+                @if (Model.Any())
+                {
+                    <tfoot class="table-light fw-bold">
+                        <tr class="text-primary">
+                            <td>TỔNG CỘNG</td>
+                            <td class="text-center">@Model.Sum(x => x.TotalProducts)</td>
+                            <td class="text-center">@Model.Sum(x => x.TotalQuantity).ToString("N0")</td>
+                            <td class="text-end">@Model.Sum(x => x.TotalValue).ToString("N0") đ</td>
+                            <td class="text-center">@Model.Sum(x => x.LowStockCount)</td>
+                            <td class="text-center">@Model.Sum(x => x.OutOfStockCount)</td>
+                        </tr>
+                    </tfoot>
+                }
+            </table>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+@if (Model.Any())
+{
+<script>
+    // Bar chart: Số lượng tồn kho
+    new Chart(document.getElementById('qtyChart'), {
+        type: 'bar',
+        data: {
+            labels: [@Html.Raw(catLabels)],
+            datasets: [{
+                label: 'Số lượng',
+                data: [@catQty],
+                backgroundColor: ['#10B981','#3B82F6','#F59E0B','#EF4444','#8B5CF6','#EC4899','#06B6D4','#84CC16'],
+                borderRadius: 6,
+                borderSkipped: false
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ctx.dataset.label + ': ' + ctx.raw.toLocaleString('vi') } } },
+            scales: {
+                x: { grid: { display: false }, ticks: { color: '#64748B', font: { size: 11 } } },
+                y: { grid: { color: '#F1F5F9' }, ticks: { color: '#64748B', font: { size: 11 } }, beginAtZero: true }
+            }
+        }
+    });
+
+    // Doughnut chart: Giá trị tồn kho
+    new Chart(document.getElementById('valChart'), {
+        type: 'doughnut',
+        data: {
+            labels: [@Html.Raw(catLabels)],
+            datasets: [{
+                data: [@catVal],
+                backgroundColor: ['#10B981','#3B82F6','#F59E0B','#EF4444','#8B5CF6','#EC4899','#06B6D4','#84CC16'],
+                borderWidth: 0, hoverOffset: 8
+            }]
+        },
+        options: {
+            responsive: true,
+            cutout: '60%',
+            plugins: {
+                legend: { position: 'bottom', labels: { padding: 10, font: { size: 11 }, usePointStyle: true, pointStyleWidth: 8 } },
+                tooltip: { callbacks: { label: ctx => ctx.label + ': ' + ctx.raw.toLocaleString('vi') + 'đ' }, cornerRadius: 8 }
+            }
+        }
+    });
+</script>
+}
+}

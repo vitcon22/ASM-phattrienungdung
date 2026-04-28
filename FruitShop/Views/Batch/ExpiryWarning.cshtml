@@ -1,0 +1,74 @@
+@model List<FruitShop.Models.Entities.Batch>
+@{
+    ViewData["Title"] = "Cảnh báo hàng sắp hết hạn";
+    Layout = "_Layout";
+    int days = ViewBag.Days ?? 7;
+}
+@section Breadcrumb {
+    <li class="breadcrumb-item"><a href="@Url.Action("Index")">Lô hàng</a></li>
+    <li class="breadcrumb-item active">Cảnh báo hết hạn</li>
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="page-title"><i class="fas fa-exclamation-triangle me-2 text-warning"></i>Cảnh báo hàng sắp hết hạn</h4>
+    <form method="get" class="d-flex gap-2 align-items-center">
+        <label class="form-label mb-0 fw-bold">Trong vòng</label>
+        <select name="days" class="form-select form-select-sm" style="width:auto" onchange="this.form.submit()">
+            @foreach (var d in new[] { 3, 7, 14, 30 })
+            {
+                <option value="@d" selected="@(d == days)">@d ngày</option>
+            }
+        </select>
+    </form>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-success">
+        <i class="fas fa-check-circle me-2"></i>Không có lô hàng nào sắp hết hạn trong @days ngày tới.
+    </div>
+}
+else
+{
+    <div class="alert alert-warning">
+        <i class="fas fa-exclamation-triangle me-2"></i>Có <strong>@Model.Count</strong> lô hàng sắp hết hạn. Cần xử lý kịp thời!
+    </div>
+    <div class="card shadow-sm">
+        <div class="card-body p-0">
+            <table class="table table-hover mb-0 align-middle">
+                <thead class="table-warning">
+                    <tr>
+                        <th>Mã lô</th>
+                        <th>Sản phẩm</th>
+                        <th class="text-center">Còn lại</th>
+                        <th>Hạn sử dụng</th>
+                        <th class="text-center">Ngày còn lại</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var b in Model.OrderBy(b => b.ExpiryDate))
+                    {
+                        var daysLeft = (b.ExpiryDate - DateTime.Now).Days;
+                        <tr class="@(daysLeft <= 1 ? "table-danger" : "table-warning")">
+                            <td><code>@b.BatchCode</code></td>
+                            <td>@b.FruitName</td>
+                            <td class="text-center"><strong>@b.RemainingQty</strong></td>
+                            <td>@b.ExpiryDate.ToString("dd/MM/yyyy")</td>
+                            <td class="text-center">
+                                <span class="badge @(daysLeft <= 1 ? "bg-danger" : "bg-warning text-dark") fs-6">
+                                    @(daysLeft <= 0 ? "HẾT HẠN" : $"{daysLeft} ngày")
+                                </span>
+                            </td>
+                            <td>
+                                <a href="@Url.Action("PrintReceipt", new { id = b.BatchId })" class="btn btn-sm btn-outline-secondary">
+                                    <i class="fas fa-print"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}

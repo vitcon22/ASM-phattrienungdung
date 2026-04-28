@@ -19,22 +19,32 @@
             <div class="card mb-4 profile-header-card">
                 <div class="card-body d-flex align-items-center gap-4 p-4">
                     <div class="profile-avatar">
-                        <i class="fas fa-user-circle"></i>
+                        <i class="fas fa-user"></i>
                     </div>
                     <div>
                         <h4 class="mb-1 fw-bold">@Model.FullName</h4>
                         <div class="d-flex align-items-center gap-2 mb-1">
-                            <span class="badge bg-success">@Model.RoleName</span>
+                            <span class="badge" style="background:rgba(16,185,129,0.2);color:var(--primary-light);border-radius:50px;font-size:0.72rem;">@Model.RoleName</span>
                             @if (Model.IsActive)
                             {
-                                <span class="badge bg-light text-success border border-success">
-                                    <i class="fas fa-circle me-1" style="font-size:.5rem"></i>Đang hoạt động
+                                <span class="badge" style="background:rgba(255,255,255,0.1);color:rgba(255,255,255,0.8);border-radius:50px;font-size:0.72rem;">
+                                    <i class="fas fa-circle me-1" style="font-size:.5rem;color:var(--primary-light);"></i>Đang hoạt động
                                 </span>
                             }
                         </div>
-                        <small class="text-muted">
+                        <small class="d-block mb-1" style="color:rgba(255,255,255,0.6);">
                             <i class="fas fa-envelope me-1"></i>@Model.Email
                         </small>
+                        <div class="mt-2 d-flex gap-3">
+                            <div class="points-info">
+                                <small class="text-muted text-uppercase fw-bold d-block" style="font-size: 0.7rem;color:rgba(255,255,255,0.5);">Điểm tích lũy</small>
+                                <span class="fw-bold" style="font-size: 1.2rem;color:var(--primary-light);">@Model.Points.ToString("N0")</span>
+                            </div>
+                            <div class="tier-info">
+                                <small class="text-muted text-uppercase fw-bold d-block" style="font-size: 0.7rem;color:rgba(255,255,255,0.5);">Hạng thành viên</small>
+                                <span class="badge" style="background:rgba(245,158,11,0.2);color:#FCD34D;border-radius:50px;font-size:0.72rem;"><i class="fas fa-medal me-1"></i>@Model.Tier</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

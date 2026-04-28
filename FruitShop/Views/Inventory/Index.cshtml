@@ -1,44 +1,86 @@
+@using Microsoft.AspNetCore.Mvc.Rendering
 @model IEnumerable<FruitShop.Models.Entities.InventoryLog>
 @{
-    ViewData["Title"] = "Quản lý Tồn kho";
+    ViewData["Title"] = "Quáº£n lĂ½ Tá»“n kho";
     Layout = "_Layout";
 }
 @section Breadcrumb {
-    <li class="breadcrumb-item active">Tồn kho</li>
+    <li class="breadcrumb-item active">Tá»“n kho</li>
 }
 
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h4 class="page-title"><i class="fas fa-boxes me-2 text-primary"></i>Quản lý Tồn kho</h4>
-    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#adjustModal">
-        <i class="fas fa-plus me-2"></i>Điều chỉnh tồn kho
-    </button>
+    <h4 class="page-title"><i class="fas fa-boxes me-2 text-primary"></i>Lá»‹ch sá»­ Nháº­p/Xuáº¥t kho</h4>
+    <div class="btn-group">
+        <button class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#spoiledModal">
+            <i class="fas fa-trash-alt me-2"></i>HĂ ng há»ng/Tráº£ láº¡i
+        </button>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#adjustModal">
+            <i class="fas fa-plus me-2"></i>Äiá»u chá»‰nh tá»“n kho
+        </button>
+    </div>
+</div>
+
+<div class="card shadow-sm mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3 align-items-end">
+            <div class="col-md-5">
+                <label class="form-label small fw-semibold text-muted">Lá»c theo sáº£n pháº©m</label>
+                <select name="fruitId" class="form-select">
+                    <option value="">-- Táº¥t cáº£ sáº£n pháº©m --</option>
+                    @if (ViewBag.Fruits != null)
+                    {
+                        foreach (var f in (IEnumerable<SelectListItem>)ViewBag.Fruits)
+                        {
+                            <option value="@f.Value">@f.Text</option>
+                        }
+                    }
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary w-100" style="border-radius:10px;">
+                    <i class="fas fa-filter me-1"></i>Lá»c
+                </button>
+            </div>
+            <div class="col-md-2">
+                <a asp-action="Index" class="btn w-100" style="border:1.5px solid var(--border);border-radius:10px;color:var(--text-secondary);font-weight:600;">
+                    <i class="fas fa-redo me-1"></i>Äáº·t láº¡i
+                </a>
+            </div>
+        </form>
+    </div>
 </div>
 
 <div class="card shadow-sm">
-    <div class="card-header bg-white">
-        <h6 class="mb-0"><i class="fas fa-history me-2"></i>Lịch sử điều chỉnh (50 log gần nhất)</h6>
+    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <h6 class="mb-0"><i class="fas fa-history me-2"></i>Lá»‹ch sá»­ Ä‘iá»u chá»‰nh kho</h6>
+        <span class="badge bg-secondary">@Model.Count() báº£n ghi</span>
     </div>
     <div class="card-body p-0">
         <div class="table-responsive">
             <table class="table table-hover mb-0 align-middle">
                 <thead class="table-light">
                     <tr>
-                        <th>Ngày giờ</th>
-                        <th>Sản phẩm</th>
-                        <th>Nhân viên</th>
-                        <th class="text-center">Thay đổi</th>
-                        <th>Lý do</th>
+                        <th style="width:150px;">NgĂ y giá»</th>
+                        <th>Sáº£n pháº©m</th>
+                        <th>NhĂ¢n viĂªn</th>
+                        <th class="text-center" style="width:100px;">Thay Ä‘á»•i</th>
+                        <th class="text-center" style="width:100px;">Tá»“n má»›i</th>
+                        <th>LĂ½ do</th>
                     </tr>
                 </thead>
                 <tbody>
                     @if (!Model.Any())
                     {
-                        <tr><td colspan="5" class="text-center text-muted py-4">Chưa có lịch sử nhập/xuất kho</td></tr>
+                        <tr><td colspan="6" class="text-center text-muted py-5"><i class="fas fa-inbox fa-2x d-block mb-2" style="opacity:.25"></i>KhĂ´ng cĂ³ lá»‹ch sá»­ nháº­p/xuáº¥t kho</td></tr>
                     }
                     @foreach (var log in Model)
                     {
                         <tr>
-                            <td>@log.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
+                            <td>
+                                <span class="badge bg-light text-dark border">
+                                    <i class="far fa-clock me-1"></i>@log.CreatedAt.ToString("dd/MM/yyyy HH:mm")
+                                </span>
+                            </td>
                             <td class="fw-bold">@log.FruitName</td>
                             <td>@log.StaffName</td>
                             <td class="text-center">
@@ -51,6 +93,7 @@
                                     <span class="badge bg-danger">@log.QuantityChange</span>
                                 }
                             </td>
+                            <td class="text-center text-muted small">@log.NewStockQuantity</td>
                             <td><span class="text-muted small">@log.Reason</span></td>
                         </tr>
                     }
@@ -60,35 +103,83 @@
     </div>
 </div>
 
-<!-- Modal Điều chỉnh -->
 <div class="modal fade" id="adjustModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
             <form asp-action="AdjustStock" method="post">
                 @Html.AntiForgeryToken()
                 <div class="modal-header">
-                    <h5 class="modal-title"><i class="fas fa-boxes me-2 text-primary"></i>Điều chỉnh Nhập/Xuất kho</h5>
+                    <h5 class="modal-title"><i class="fas fa-boxes me-2 text-primary"></i>Äiá»u chá»‰nh Nháº­p/Xuáº¥t kho</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label class="form-label">Sản phẩm</label>
-                        <select name="fruitId" class="form-select" asp-items="ViewBag.Fruits" required>
-                            <option value="">-- Chọn trái cây --</option>
+                        <label class="form-label">Sáº£n pháº©m <span class="text-danger">*</span></label>
+                        <select name="fruitId" class="form-select" required>
+                            <option value="">-- Chá»n trĂ¡i cĂ¢y --</option>
+                            @if (ViewBag.Fruits != null)
+                            {
+                                foreach (var f in (IEnumerable<SelectListItem>)ViewBag.Fruits)
+                                {
+                                    <option value="@f.Value">@f.Text</option>
+                                }
+                            }
                         </select>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Số lượng thay đổi (dương để Nhập, âm để Xuất/Hư hỏng)</label>
-                        <input type="number" name="quantityChange" class="form-control" required />
+                        <label class="form-label">Sá»‘ lÆ°á»£ng thay Ä‘á»•i <span class="text-danger">*</span></label>
+                        <input type="number" name="quantityChange" class="form-control" placeholder="DÆ°Æ¡ng (+) Ä‘á»ƒ Nháº­p, Ă‚m (-) Ä‘á»ƒ Xuáº¥t" required />
+                        <small class="text-muted">VD: +50 (nháº­p thĂªm 50) hoáº·c -5 (xuáº¥t/bĂ¡n 5)</small>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Lý do</label>
-                        <textarea name="reason" class="form-control" rows="2" placeholder="Ví dụ: Nhập hàng mới, Trái cây bị hỏng..." required></textarea>
+                        <label class="form-label">LĂ½ do <span class="text-danger">*</span></label>
+                        <textarea name="reason" class="form-control" rows="2" placeholder="VĂ­ dá»¥: Nháº­p hĂ ng má»›i tá»« Dalat Hasfarm, BĂ¡n láº» cho khĂ¡ch..." required></textarea>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
-                    <button type="submit" class="btn btn-primary">Xác nhận</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ÄĂ³ng</button>
+                    <button type="submit" class="btn btn-primary">XĂ¡c nháº­n</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="spoiledModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form asp-action="ReturnSpoiled" method="post">
+                @Html.AntiForgeryToken()
+                <div class="modal-header bg-warning text-dark">
+                    <h5 class="modal-title"><i class="fas fa-trash-alt me-2"></i>Ghi nháº­n HĂ ng há»ng / Tráº£ láº¡i</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Sáº£n pháº©m <span class="text-danger">*</span></label>
+                        <select name="fruitId" class="form-select" required>
+                            <option value="">-- Chá»n trĂ¡i cĂ¢y --</option>
+                            @if (ViewBag.Fruits != null)
+                            {
+                                foreach (var f in (IEnumerable<SelectListItem>)ViewBag.Fruits)
+                                {
+                                    <option value="@f.Value">@f.Text</option>
+                                }
+                            }
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Sá»‘ lÆ°á»£ng há»ng/tráº£ láº¡i <span class="text-danger">*</span></label>
+                        <input type="number" name="spoiledQuantity" class="form-control" min="1" placeholder="VD: 3" required />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">LĂ½ do / TĂ¬nh tráº¡ng <span class="text-danger">*</span></label>
+                        <textarea name="spoilReason" class="form-control" rows="2" placeholder="VĂ­ dá»¥: TrĂ¡i cĂ¢y bá»‹ dáº­p nĂ¡t khi váº­n chuyá»ƒn, háº¿t háº¡n sá»­ dá»¥ng..." required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ÄĂ³ng</button>
+                    <button type="submit" class="btn btn-warning">XĂ¡c nháº­n hĂ ng há»ng</button>
                 </div>
             </form>
         </div>

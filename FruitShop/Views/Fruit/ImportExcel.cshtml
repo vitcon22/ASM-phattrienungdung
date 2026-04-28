@@ -1,0 +1,41 @@
+@{
+    ViewData["Title"] = "Nhập dữ liệu trái cây từ Excel";
+    Layout = "_Layout";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="fas fa-file-excel me-2"></i>Nhập dữ liệu trái cây (Bulk Import)</h5>
+            </div>
+            <div class="card-body">
+                <p>Vui lòng tải lên file Excel (.xlsx) với định dạng các cột như sau:</p>
+                <ul>
+                    <li>Cột A: Tên trái cây (bắt buộc)</li>
+                    <li>Cột B: ID Danh mục (số, bắt buộc)</li>
+                    <li>Cột C: Giá bán (số, bắt buộc)</li>
+                    <li>Cột D: Tồn kho (số, bắt buộc)</li>
+                    <li>Cột E: Đơn vị tính (VD: kg)</li>
+                    <li>Cột F: Ngưỡng tồn kho tối thiểu (số)</li>
+                    <li>Cột G: Xuất xứ</li>
+                    <li>Cột H: Mô tả</li>
+                </ul>
+                <div class="alert alert-info small">
+                    <strong>Lưu ý:</strong> Dòng đầu tiên (dòng 1) được xem là header và sẽ bị bỏ qua.
+                </div>
+
+                <form asp-action="ImportExcel" method="post" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label for="excelFile" class="form-label">Chọn file Excel (.xlsx)</label>
+                        <input class="form-control" type="file" id="excelFile" name="excelFile" accept=".xlsx" required>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <a asp-action="Index" class="btn btn-secondary">Quay lại</a>
+                        <button type="submit" class="btn btn-success"><i class="fas fa-upload me-2"></i>Nhập dữ liệu</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

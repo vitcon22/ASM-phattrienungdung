@@ -19,6 +19,27 @@ namespace FruitShop.Models.Entities
         public int? CouponId { get; set; }
         public decimal DiscountAmount { get; set; }
 
+        // Points redemption (RQ35)
+        public int PointsRedeemed { get; set; }
+        public decimal PointsDiscount { get; set; }
+
+        // Thanh toán
+        public string? PaymentMethod { get; set; }   // Cash, Transfer, QR
+        public decimal? AmountReceived { get; set; } // Số tiền khách đưa (Cash)
+
+        public decimal CashChange =>
+            (PaymentMethod == "Cash" && AmountReceived.HasValue)
+                ? Math.Max(0, AmountReceived.Value - TotalAmount)
+                : 0;
+
+        public string GetPaymentMethodText() => PaymentMethod switch
+        {
+            "Cash"     => "Tiền mặt",
+            "Transfer" => "Chuyển khoản",
+            "QR"       => "QR Code",
+            _          => "—"
+        };
+
         // Navigation properties
         public string? CustomerName { get; set; }
         public string? StaffName { get; set; }

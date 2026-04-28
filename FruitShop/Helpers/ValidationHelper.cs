@@ -24,7 +24,7 @@ namespace FruitShop.Helpers
         /// <summary>
         /// Kiểm tra tên trái cây có bị trùng trong cùng danh mục không
         /// </summary>
-        public bool IsFruitNameDuplicate(string name, int categoryId, int excludeId = 0)
+        public virtual bool IsFruitNameDuplicate(string name, int categoryId, int excludeId = 0)
         {
             return _fruitRepo.NameExistsInCategory(name, categoryId, excludeId);
         }
@@ -32,7 +32,7 @@ namespace FruitShop.Helpers
         /// <summary>
         /// Kiểm tra email đăng ký có bị trùng không
         /// </summary>
-        public bool IsEmailDuplicate(string email, int excludeUserId = 0)
+        public virtual bool IsEmailDuplicate(string email, int excludeUserId = 0)
         {
             return _userRepo.EmailExists(email, excludeUserId);
         }
@@ -40,7 +40,7 @@ namespace FruitShop.Helpers
         /// <summary>
         /// Kiểm tra số lượng đặt có vượt tồn kho không
         /// </summary>
-        public bool IsQuantityExceedStock(int fruitId, int requestedQuantity)
+        public virtual bool IsQuantityExceedStock(int fruitId, int requestedQuantity)
         {
             var fruit = _fruitRepo.GetById(fruitId);
             return fruit == null || requestedQuantity > fruit.StockQuantity;
@@ -49,7 +49,7 @@ namespace FruitShop.Helpers
         /// <summary>
         /// Kiểm tra danh mục có thể xóa không (không có sản phẩm active)
         /// </summary>
-        public bool CanDeleteCategory(int categoryId)
+        public virtual bool CanDeleteCategory(int categoryId)
         {
             return !_categoryRepo.HasFruits(categoryId);
         }
@@ -57,7 +57,7 @@ namespace FruitShop.Helpers
         /// <summary>
         /// Kiểm tra trái cây có thể xóa không (không có trong đơn hàng nào)
         /// </summary>
-        public bool CanDeleteFruit(int fruitId)
+        public virtual bool CanDeleteFruit(int fruitId)
         {
             return !_fruitRepo.IsInOrder(fruitId);
         }
@@ -65,7 +65,7 @@ namespace FruitShop.Helpers
         /// <summary>
         /// Kiểm tra file ảnh upload có hợp lệ không
         /// </summary>
-        public (bool IsValid, string ErrorMessage) ValidateImageFile(IFormFile? file)
+        public virtual (bool IsValid, string ErrorMessage) ValidateImageFile(IFormFile? file)
         {
             if (file == null) return (true, string.Empty); // Không bắt buộc
 

@@ -12,5 +12,6 @@ namespace FruitShop.Models.Entities
         // Cho view hiển thị
         public string FruitName { get; set; } = string.Empty;
         public string StaffName { get; set; } = string.Empty;
+        public int NewStockQuantity { get; set; }
     }
 }

@@ -1,0 +1,80 @@
+@using FruitShop.Constants
+@{
+    var role = ViewBag.Role;
+    var userName = ViewBag.UserName;
+}
+<li class="menu-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Dashboard" ? "active" : "")">
+    <a asp-controller="Dashboard" asp-action="Index">
+        <i class="fas fa-chart-line"></i>
+        <span>Dashboard</span>
+    </a>
+</li>
+<li class="menu-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Fruit" ? "active" : "")">
+    <a asp-controller="Fruit" asp-action="Index">
+        <i class="fas fa-lemon"></i>
+        <span>Quản lý Trái cây</span>
+    </a>
+</li>
+<li class="menu-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Category" ? "active" : "")">
+    <a asp-controller="Category" asp-action="Index">
+        <i class="fas fa-tags"></i>
+        <span>Danh mục</span>
+    </a>
+</li>
+<li class="menu-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "AdminSupplier" ? "active" : "")">
+    <a asp-controller="AdminSupplier" asp-action="Index">
+        <i class="fas fa-truck"></i>
+        <span>Nhà cung cấp</span>
+    </a>
+</li>
+<li class="menu-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Order" ? "active" : "")">
+    <a asp-controller="Order" asp-action="Index">
+        <i class="fas fa-shopping-bag"></i>
+        <span>Đơn hàng</span>
+    </a>
+</li>
+<li class="menu-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Coupon" ? "active" : "")">
+    <a asp-controller="Coupon" asp-action="Index">
+        <i class="fas fa-ticket-alt"></i>
+        <span>Mã giảm giá</span>
+    </a>
+</li>
+<li class="menu-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Inventory" ? "active" : "")">
+    <a asp-controller="Inventory" asp-action="Index">
+        <i class="fas fa-boxes"></i>
+        <span>Tồn kho</span>
+    </a>
+</li>
+@if (role == AppConstants.Roles.Admin)
+{
+    <li class="menu-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "User" ? "active" : "")">
+        <a asp-controller="User" asp-action="Index">
+            <i class="fas fa-user-shield"></i>
+            <span>Nhân sự & Quyền</span>
+        </a>
+    </li>
+    <li class="menu-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "AdminCustomer" ? "active" : "")">
+        <a asp-controller="AdminCustomer" asp-action="Index">
+            <i class="fas fa-users"></i>
+            <span>Khách hàng</span>
+        </a>
+    </li>
+    <li class="menu-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Batch" ? "active" : "")">
+        <a asp-controller="Batch" asp-action="Index">
+            <i class="fas fa-box-open"></i>
+            <span>Lô hàng</span>
+        </a>
+    </li>
+    <li class="menu-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "OperatingCost" ? "active" : "")">
+        <a asp-controller="OperatingCost" asp-action="Index">
+            <i class="fas fa-file-invoice-dollar"></i>
+            <span>Chi phí vận hành</span>
+        </a>
+    </li>
+    <li class="menu-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "AdminAuditLog" ? "active" : "")">
+        <a asp-controller="AdminAuditLog" asp-action="Index">
+            <i class="fas fa-history"></i>
+            <span>Nhật ký hệ thống</span>
+        </a>
+    </li>
+}

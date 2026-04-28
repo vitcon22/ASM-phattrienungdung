@@ -27,7 +27,23 @@ namespace FruitShop.Models.ViewModels
         public string? CouponCode { get; set; }
         public int? CouponId { get; set; }
         public decimal DiscountAmount { get; set; }
-        public decimal FinalAmount => TotalAmount - DiscountAmount;
+
+        // Points redemption (RQ35)
+        public int PointsRedeemed { get; set; }
+        public decimal PointsDiscount { get; set; }
+        public decimal FinalAmount => TotalAmount - DiscountAmount - PointsDiscount;
+
+        // Thanh toán (RQ15, RQ16)
+        [Display(Name = "Phương thức thanh toán")]
+        public string PaymentMethod { get; set; } = "Cash";
+
+        [Display(Name = "Tiền khách đưa")]
+        public decimal? AmountReceived { get; set; }
+
+        public decimal CashChange =>
+            (PaymentMethod == "Cash" && AmountReceived.HasValue)
+                ? Math.Max(0, AmountReceived.Value - FinalAmount)
+                : 0;
     }
 
     /// <summary>
@@ -82,6 +98,16 @@ namespace FruitShop.Models.ViewModels
 
         // Người dùng mới hôm nay
         public int NewUsersToday { get; set; }
+
+        // Tồn kho (RQ40)
+        public decimal TotalStockValue { get; set; }
+        public int TotalStockQuantity { get; set; }
+
+        // Phase 3: Biểu đồ nâng cao
+        public List<RevenueByCategory> RevenueByCategories { get; set; } = new();
+
+        // RQ86: Khách hàng mới tháng này
+        public int NewCustomersThisMonth { get; set; }
     }
 
     public class TopFruitItem
@@ -94,6 +120,12 @@ namespace FruitShop.Models.ViewModels
     public class RevenueByDay
     {
         public string DayLabel { get; set; } = string.Empty;
+        public decimal Revenue { get; set; }
+    }
+
+    public class RevenueByCategory
+    {
+        public string CategoryName { get; set; } = string.Empty;
         public decimal Revenue { get; set; }
     }
 }

@@ -12,7 +12,7 @@ namespace FruitShop.Models.DAL
             _context = context;
         }
 
-        public IEnumerable<Wishlist> GetByUser(int userId)
+        public virtual IEnumerable<Wishlist> GetByUser(int userId)
         {
             using var conn = _context.CreateConnection();
             const string sql = @"
@@ -25,14 +25,14 @@ namespace FruitShop.Models.DAL
             return conn.Query<Wishlist>(sql, new { UserId = userId });
         }
 
-        public bool IsInWishlist(int userId, int fruitId)
+        public virtual bool IsInWishlist(int userId, int fruitId)
         {
             using var conn = _context.CreateConnection();
             const string sql = "SELECT COUNT(*) FROM Wishlists WHERE UserId = @UserId AND FruitId = @FruitId";
             return conn.ExecuteScalar<int>(sql, new { UserId = userId, FruitId = fruitId }) > 0;
         }
 
-        public void Toggle(int userId, int fruitId)
+        public virtual void Toggle(int userId, int fruitId)
         {
             using var conn = _context.CreateConnection();
             if (IsInWishlist(userId, fruitId))

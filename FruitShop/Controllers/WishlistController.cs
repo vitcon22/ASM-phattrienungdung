@@ -13,6 +13,17 @@ namespace FruitShop.Controllers
             _wishlistRepo = wishlistRepo;
         }
 
+        // GET: /Wishlist — Trang danh sách yêu thích (RQ67)
+        public IActionResult Index()
+        {
+            int? userId = HttpContext.Session.GetInt32(SessionHelper.UserIdKey);
+            if (userId == null)
+                return RedirectToAction("Login", "Account");
+
+            var items = _wishlistRepo.GetByUser(userId.Value).ToList();
+            return View(items);
+        }
+
         // POST: /Wishlist/Toggle
         [HttpPost]
         public IActionResult Toggle(int fruitId)

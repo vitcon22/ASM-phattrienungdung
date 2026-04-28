@@ -12,21 +12,21 @@ namespace FruitShop.Models.DAL
             _context = context;
         }
 
-        public IEnumerable<Coupon> GetAll()
+        public virtual IEnumerable<Coupon> GetAll()
         {
             using var conn = _context.CreateConnection();
             const string sql = "SELECT * FROM Coupons ORDER BY ExpiryDate DESC";
             return conn.Query<Coupon>(sql);
         }
 
-        public Coupon? GetByCode(string code)
+        public virtual Coupon? GetByCode(string code)
         {
             using var conn = _context.CreateConnection();
             const string sql = "SELECT * FROM Coupons WHERE Code = @Code AND IsActive = 1 AND ExpiryDate >= GETDATE()";
             return conn.QueryFirstOrDefault<Coupon>(sql, new { Code = code });
         }
 
-        public void Insert(Coupon coupon)
+        public virtual void Insert(Coupon coupon)
         {
             using var conn = _context.CreateConnection();
             const string sql = @"
@@ -35,7 +35,7 @@ namespace FruitShop.Models.DAL
             conn.Execute(sql, coupon);
         }
 
-        public void ToggleActive(int couponId, bool isActive)
+        public virtual void ToggleActive(int couponId, bool isActive)
         {
             using var conn = _context.CreateConnection();
             const string sql = "UPDATE Coupons SET IsActive = @IsActive WHERE CouponId = @CouponId";

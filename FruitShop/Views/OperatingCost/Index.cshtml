@@ -1,0 +1,160 @@
+@model List<FruitShop.Models.Entities.OperatingCost>
+@{
+    ViewData["Title"] = "Chi phí vận hành";
+    Layout = "_Layout";
+    int month = ViewBag.Month;
+    int year  = ViewBag.Year;
+    decimal revenue   = ViewBag.Revenue;
+    decimal totalCost = ViewBag.TotalCost;
+    decimal cogs      = ViewBag.COGS;
+    decimal grossProfit = ViewBag.GrossProfit;
+    decimal netProfit   = ViewBag.NetProfit;
+    string[] costTypes = ViewBag.CostTypes;
+}
+
+@section Breadcrumb {
+    <li class="breadcrumb-item active">Chi phí vận hành</li>
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="page-title"><i class="fas fa-receipt me-2 text-primary"></i>Chi phí vận hành — Tháng @month/@year</h4>
+    <div class="d-flex gap-2">
+        <a href="@Url.Action("ExportExcel", new { month, year })" class="btn btn-success btn-sm">
+            <i class="fas fa-file-excel me-1"></i>Xuất Excel
+        </a>
+        <form method="get" class="d-flex gap-2 align-items-center">
+            <input type="number" name="month" value="@month" min="1" max="12" class="form-control form-control-sm" style="width:80px" />
+            <input type="number" name="year" value="@year" min="2020" max="2099" class="form-control form-control-sm" style="width:90px" />
+            <button type="submit" class="btn btn-outline-primary btn-sm"><i class="fas fa-search me-1"></i>Xem</button>
+        </form>
+    </div>
+</div>
+
+<!-- Tổng kết lợi nhuận (RQ32) -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card border-0 bg-success text-white text-center p-3">
+            <div class="fs-5 fw-bold">@revenue.ToString("N0")đ</div>
+            <div class="small">Doanh thu tháng @month/@year</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 text-dark bg-warning text-white text-center p-3">
+            <div class="fs-5 fw-bold">@cogs.ToString("N0")đ</div>
+            <div class="small">Giá vốn (COGS)</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 text-dark bg-info text-white text-center p-3">
+            <div class="fs-5 fw-bold">@grossProfit.ToString("N0")đ</div>
+            <div class="small">Lợi nhuận gộp</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 bg-primary text-white text-center p-3">
+            <div class="fs-5 fw-bold">@(totalCost.ToString("N0"))đ</div>
+            <div class="small">Chi phí vận hành</div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="card border-0 @(netProfit >= 0 ? "bg-success" : "bg-danger") text-white text-center p-3">
+            <div class="fs-4 fw-bold">@netProfit.ToString("N0")đ</div>
+            <div class="small">Lợi nhuận ròng</div>
+        </div>
+    </div>
+</div>
+
+<!-- Form thêm chi phí -->
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-white fw-bold">
+        <i class="fas fa-plus me-2 text-success"></i>Thêm chi phí
+    </div>
+    <div class="card-body">
+        <form asp-action="Create" method="post" class="row g-2 align-items-end">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="Month" value="@month" />
+            <input type="hidden" name="Year" value="@year" />
+            <div class="col-md-3">
+                <label class="form-label small fw-bold">Loại chi phí</label>
+                <select name="CostType" class="form-select form-select-sm" required>
+                    <option value="">-- Chọn loại --</option>
+                    @foreach (var ct in costTypes)
+                    {
+                        <option value="@ct">@ct</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small fw-bold">Số tiền (đ)</label>
+                <input type="number" name="Amount" min="0" step="1000" class="form-control form-control-sm" placeholder="VD: 5000000" required />
+            </div>
+            <div class="col-md-4">
+                <label class="form-label small fw-bold">Ghi chú</label>
+                <input type="text" name="Note" maxlength="500" class="form-control form-control-sm" placeholder="Ghi chú thêm (nếu có)" />
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-success btn-sm w-100">
+                    <i class="fas fa-save me-1"></i>Lưu
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Danh sách chi phí -->
+<div class="card shadow-sm">
+    <div class="card-header bg-white fw-bold">
+        <i class="fas fa-list me-2"></i>Danh sách chi phí tháng @month/@year
+    </div>
+    <div class="card-body p-0">
+        <table class="table table-hover mb-0 align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>#</th>
+                    <th>Loại chi phí</th>
+                    <th class="text-end">Số tiền</th>
+                    <th>Ghi chú</th>
+                    <th>Ngày nhập</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @{int no = 1;}
+                @foreach (var c in Model)
+                {
+                    <tr>
+                        <td>@no++</td>
+                        <td><span class="badge bg-secondary">@c.CostType</span></td>
+                        <td class="text-end fw-bold text-danger">@c.Amount.ToString("N0")đ</td>
+                        <td class="text-muted">@c.Note</td>
+                        <td class="small text-muted">@c.CreatedAt.ToString("dd/MM/yyyy")</td>
+                        <td>
+                            <form method="post" action="@Url.Action("Delete", new { id = c.CostId, month, year })"
+                                  onsubmit="return confirm('Xóa chi phí này?')" class="d-inline">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-sm btn-outline-danger">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+                @if (!Model.Any())
+                {
+                    <tr><td colspan="6" class="text-center text-muted py-4">Chưa có chi phí nào được ghi nhận tháng này.</td></tr>
+                }
+                else
+                {
+                    <tr class="table-warning fw-bold">
+                        <td colspan="2" class="text-end">TỔNG CỘNG</td>
+                        <td class="text-end text-danger">@totalCost.ToString("N0")đ</td>
+                        <td colspan="3"></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

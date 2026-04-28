@@ -18,7 +18,7 @@ namespace FruitShop.Models.DAL
         /// <summary>
         /// Lấy tất cả danh mục đang hoạt động (có kèm số lượng sản phẩm)
         /// </summary>
-        public IEnumerable<Category> GetAll(bool includeInactive = false)
+        public virtual IEnumerable<Category> GetAll(bool includeInactive = false)
         {
             using var conn = _context.CreateConnection();
             var sql = @"
@@ -33,7 +33,7 @@ namespace FruitShop.Models.DAL
         /// <summary>
         /// Tìm kiếm danh mục theo tên với phân trang
         /// </summary>
-        public (IEnumerable<Category> Items, int TotalCount) Search(string? keyword, int page, int pageSize)
+        public virtual (IEnumerable<Category> Items, int TotalCount) Search(string? keyword, int page, int pageSize)
         {
             using var conn = _context.CreateConnection();
             var whereClause = string.IsNullOrWhiteSpace(keyword)
@@ -58,7 +58,7 @@ namespace FruitShop.Models.DAL
         /// <summary>
         /// Lấy danh mục theo ID
         /// </summary>
-        public Category? GetById(int categoryId)
+        public virtual Category? GetById(int categoryId)
         {
             using var conn = _context.CreateConnection();
             const string sql = @"
@@ -72,7 +72,7 @@ namespace FruitShop.Models.DAL
         /// <summary>
         /// Kiểm tra tên danh mục đã tồn tại chưa
         /// </summary>
-        public bool NameExists(string name, int excludeId = 0)
+        public virtual bool NameExists(string name, int excludeId = 0)
         {
             using var conn = _context.CreateConnection();
             const string sql = "SELECT COUNT(*) FROM Categories WHERE CategoryName = @Name AND CategoryId != @ExcludeId AND IsActive = 1";
@@ -82,7 +82,7 @@ namespace FruitShop.Models.DAL
         /// <summary>
         /// Kiểm tra danh mục còn sản phẩm không (trước khi xóa)
         /// </summary>
-        public bool HasFruits(int categoryId)
+        public virtual bool HasFruits(int categoryId)
         {
             using var conn = _context.CreateConnection();
             const string sql = "SELECT COUNT(*) FROM Fruits WHERE CategoryId = @CategoryId AND IsActive = 1";
@@ -92,7 +92,7 @@ namespace FruitShop.Models.DAL
         /// <summary>
         /// Thêm danh mục mới
         /// </summary>
-        public void Insert(Category category)
+        public virtual void Insert(Category category)
         {
             using var conn = _context.CreateConnection();
             const string sql = @"
@@ -104,7 +104,7 @@ namespace FruitShop.Models.DAL
         /// <summary>
         /// Cập nhật danh mục
         /// </summary>
-        public void Update(Category category)
+        public virtual void Update(Category category)
         {
             using var conn = _context.CreateConnection();
             const string sql = @"
@@ -119,7 +119,7 @@ namespace FruitShop.Models.DAL
         /// <summary>
         /// Xóa mềm danh mục (IsActive = false)
         /// </summary>
-        public void SoftDelete(int categoryId)
+        public virtual void SoftDelete(int categoryId)
         {
             using var conn = _context.CreateConnection();
             const string sql = "UPDATE Categories SET IsActive = 0 WHERE CategoryId = @CategoryId";

@@ -39,6 +39,20 @@
                                 </div>
                             </div>
                             <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label asp-for="SupplierId" class="form-label fw-semibold">Nhà cung cấp</label>
+                                    <select asp-for="SupplierId" asp-items="ViewBag.Suppliers" class="form-select">
+                                        <option value="">-- Chọn nhà cung cấp --</option>
+                                    </select>
+                                    <span asp-validation-for="SupplierId" class="text-danger small"></span>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label asp-for="MinStock" class="form-label fw-semibold">Ngưỡng tồn kho tối thiểu <span class="text-danger">*</span></label>
+                                    <input asp-for="MinStock" class="form-control" />
+                                    <span asp-validation-for="MinStock" class="text-danger small"></span>
+                                </div>
+                            </div>
+                            <div class="row">
                                 <div class="col-md-5 mb-3">
                                     <label asp-for="Price" class="form-label fw-semibold">Giá bán (đ)</label>
                                     <div class="input-group">

@@ -1,0 +1,74 @@
+@model FruitShop.Models.Entities.Batch
+@{
+    ViewData["Title"] = "Phiếu nhập kho";
+    Layout = null; // In không cần layout
+}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <title>Phiếu nhập kho — @Model.BatchCode</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; font-size: 13px; }
+        .header { text-align: center; margin-bottom: 20px; }
+        .header h2 { margin: 0; font-size: 18px; }
+        .header p { margin: 2px 0; color: #555; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { border: 1px solid #999; padding: 7px 10px; }
+        th { background: #f0f0f0; font-weight: bold; }
+        .label { width: 40%; font-weight: bold; }
+        .total-row td { font-weight: bold; background: #f9f9f9; }
+        .footer { margin-top: 30px; display: flex; justify-content: space-between; }
+        .footer div { text-align: center; width: 30%; }
+        .sig-line { margin-top: 50px; border-top: 1px solid #333; padding-top: 5px; font-weight: bold; }
+        @@media print { .no-print { display: none; } }
+    </style>
+</head>
+<body>
+<div class="header">
+    <h2>@ViewBag.ShopName</h2>
+    <p>PHIẾU NHẬP KHO</p>
+    <p>Ngày: @DateTime.Now.ToString("dd/MM/yyyy HH:mm")</p>
+</div>
+
+<table>
+    <tr><td class="label">Mã lô hàng</td><td><strong>@Model.BatchCode</strong></td></tr>
+    <tr><td class="label">Sản phẩm</td><td>@Model.FruitName</td></tr>
+    <tr><td class="label">Ngày nhập</td><td>@Model.ImportDate.ToString("dd/MM/yyyy")</td></tr>
+    @if (Model.ManufactureDate.HasValue)
+    {
+        <tr><td class="label">Ngày sản xuất</td><td>@Model.ManufactureDate.Value.ToString("dd/MM/yyyy")</td></tr>
+    }
+    <tr><td class="label">Hạn sử dụng</td><td><strong>@Model.ExpiryDate.ToString("dd/MM/yyyy")</strong></td></tr>
+    <tr><td class="label">Số lượng nhập</td><td>@Model.Quantity</td></tr>
+    <tr><td class="label">Đơn giá nhập</td><td>@Model.BuyPrice.ToString("N0") đ</td></tr>
+    <tr class="total-row">
+        <td class="label">Tổng giá trị</td>
+        <td>@((Model.BuyPrice * Model.Quantity).ToString("N0")) đ</td>
+    </tr>
+    <tr><td class="label">Người nhập</td><td>@ViewBag.StaffName</td></tr>
+</table>
+
+<div class="footer">
+    <div>
+        <div class="sig-line">Người giao hàng</div>
+        <p>(Ký, ghi rõ họ tên)</p>
+    </div>
+    <div>
+        <div class="sig-line">Thủ kho</div>
+        <p>(Ký, ghi rõ họ tên)</p>
+    </div>
+    <div>
+        <div class="sig-line">Giám đốc</div>
+        <p>(Ký, ghi rõ họ tên)</p>
+    </div>
+</div>
+
+<div class="no-print" style="margin-top:20px;text-align:center">
+    <button onclick="window.print()" style="padding:8px 20px;background:#28a745;color:white;border:none;border-radius:4px;cursor:pointer;font-size:14px">
+        🖨 In phiếu
+    </button>
+    <a href="javascript:history.back()" style="margin-left:10px;padding:8px 20px;background:#6c757d;color:white;border-radius:4px;text-decoration:none;font-size:14px">← Quay lại</a>
+</div>
+</body>
+</html>

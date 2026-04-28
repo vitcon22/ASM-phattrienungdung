@@ -2,95 +2,195 @@
 @{
     ViewData["Title"] = "Xác nhận đơn hàng";
     Layout = "_LayoutUser";
+    int currentPoints = ViewBag.CurrentPoints ?? 0;
+    string currentTier = ViewBag.CurrentTier ?? "Standard";
+    int maxRedeem = Math.Min(currentPoints, 1000); // tối đa 1000 điểm
 }
 
 <div class="container py-4">
-    <h3 class="mb-4"><i class="fas fa-credit-card me-2 text-success"></i>Xác nhận đơn hàng</h3>
+    <!-- Page Header -->
+    <div class="page-header animate-fade-in-up">
+        <div>
+            <h1 class="page-header-title mb-1">
+                <i class="fas fa-credit-card me-2" style="color:var(--primary);"></i>Xác nhận đơn hàng
+            </h1>
+            <p class="page-header-subtitle mb-0">Kiểm tra thông tin và hoàn tất đơn hàng của bạn</p>
+        </div>
+    </div>
 
-    <div class="row">
+    <div class="row g-4">
         <!-- Form thông tin giao hàng -->
-        <div class="col-lg-7 mb-4">
-            <div class="card">
-                <div class="card-header"><h6 class="mb-0"><i class="fas fa-map-marker-alt me-2"></i>Thông tin giao hàng</h6></div>
+        <div class="col-lg-7">
+            <!-- Shipping Info -->
+            <div class="card animate-fade-in-up mb-3">
+                <div class="card-header d-flex align-items-center gap-2">
+                    <div style="width:28px;height:28px;background:var(--primary);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:0.8rem;">1</div>
+                    <h6 class="mb-0 fw-bold">Thông tin giao hàng</h6>
+                </div>
                 <div class="card-body">
                     <form asp-action="Checkout" method="post" id="checkoutForm">
                         @Html.AntiForgeryToken()
                         <input type="hidden" asp-for="CouponCode" id="hiddenCouponCode" />
+
                         <div class="mb-3">
-                            <label asp-for="ShippingAddress" class="form-label fw-semibold">
+                            <label asp-for="ShippingAddress" class="form-label" style="font-weight:600;color:var(--text-secondary);font-size:0.82rem;">
                                 Địa chỉ giao hàng <span class="text-danger">*</span>
                             </label>
                             <textarea asp-for="ShippingAddress" class="form-control" rows="3"
-                                      placeholder="Số nhà, đường, phường/xã, quận/huyện, tỉnh/thành..."></textarea>
+                                      placeholder="Số nhà, đường, phường/xã, quận/huyện, tỉnh/thành phố..."
+                                      style="border-radius:10px;"></textarea>
                             <span asp-validation-for="ShippingAddress" class="text-danger small"></span>
                         </div>
+
                         <div class="mb-4">
-                            <label asp-for="Note" class="form-label fw-semibold">Ghi chú đơn hàng</label>
+                            <label asp-for="Note" class="form-label" style="font-weight:600;color:var(--text-secondary);font-size:0.82rem;">Ghi chú đơn hàng</label>
                             <textarea asp-for="Note" class="form-control" rows="2"
-                                      placeholder="VD: Giao giờ hành chính, gọi trước khi giao..."></textarea>
+                                      placeholder="VD: Giao giờ hành chính, gọi trước khi giao..."
+                                      style="border-radius:10px;"></textarea>
                         </div>
-                        <button type="submit" class="btn btn-success btn-lg w-100" id="btnOrder">
+
+                        <!-- Phương thức thanh toán -->
+                        <div class="mb-3">
+                            <label class="form-label" style="font-weight:600;color:var(--text-secondary);font-size:0.82rem;">
+                                Phương thức thanh toán <span class="text-danger">*</span>
+                            </label>
+                            <div class="row g-2">
+                                <div class="col-4">
+                                    <input type="radio" class="btn-check" name="PaymentMethod" id="payCash" value="Cash" checked />
+                                    <label class="btn w-100" for="payCash" style="border:1.5px solid var(--border);border-radius:10px;padding:0.6rem;font-weight:600;background:var(--bg-card);color:var(--text-primary);">
+                                        <i class="fas fa-money-bill-wave me-1" style="color:var(--primary);"></i>Tiền mặt
+                                    </label>
+                                </div>
+                                <div class="col-4">
+                                    <input type="radio" class="btn-check" name="PaymentMethod" id="payTransfer" value="Transfer" />
+                                    <label class="btn w-100" for="payTransfer" style="border:1.5px solid var(--border);border-radius:10px;padding:0.6rem;font-weight:600;background:var(--bg-card);color:var(--text-primary);">
+                                        <i class="fas fa-university me-1" style="color:var(--info);"></i>Chuyển khoản
+                                    </label>
+                                </div>
+                                <div class="col-4">
+                                    <input type="radio" class="btn-check" name="PaymentMethod" id="payQR" value="QR" />
+                                    <label class="btn w-100" for="payQR" style="border:1.5px solid var(--border);border-radius:10px;padding:0.6rem;font-weight:600;background:var(--bg-card);color:var(--text-primary);">
+                                        <i class="fas fa-qrcode me-1" style="color:var(--purple);"></i>QR Code
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Tiền khách đưa -->
+                        <div class="mb-4" id="cashPaymentPanel">
+                            <label asp-for="AmountReceived" class="form-label" style="font-weight:600;color:var(--text-secondary);font-size:0.82rem;">Tiền khách đưa</label>
+                            <div class="input-group" style="border-radius:10px;">
+                                <input type="number" asp-for="AmountReceived" class="form-control" id="amountReceivedInput"
+                                       min="0" step="1000" placeholder="0" style="border-radius:10px 0 0 10px;" />
+                                <span class="input-group-text" style="border-radius:0 10px 10px 0;background:var(--bg-secondary);border-color:var(--border);font-weight:600;">đ</span>
+                            </div>
+                            <div class="mt-2 d-none" id="changeAlert" style="background:var(--primary-pale);border-radius:10px;padding:0.75rem 1rem;">
+                                <i class="fas fa-hand-holding-usd me-1" style="color:var(--primary);"></i>
+                                Tiền thừa trả khách: <strong id="changeAmount" style="color:var(--primary);">0đ</strong>
+                            </div>
+                        </div>
+
+                        <!-- RQ35: Điểm tích lũy đổi giảm giá -->
+                        @if (currentPoints > 0)
+                        {
+                            <div class="mb-4" id="pointsPanel" style="background:#F0F9FF;border-radius:10px;padding:1rem;">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span style="font-weight:700;color:#0369A1;">
+                                        <i class="fas fa-star me-1"></i>Điểm tích lũy (@currentTier)
+                                    </span>
+                                    <span style="font-weight:700;color:#0369A1;">@currentPoints điểm</span>
+                                </div>
+                                <p class="small mb-2" style="color:#64748B;">100 điểm = giảm 1,000đ (tối đa 50% giá trị đơn)</p>
+                                <input type="range" id="pointsSlider" min="0" max="@maxRedeem" step="100" value="0"
+                                       class="form-range mb-2" style="accent-color:#0369A1;" />
+                                <div class="d-flex justify-content-between small mb-2" style="color:#64748B;">
+                                    <span>0 điểm</span>
+                                    <span id="selectedPointsLabel">0 điểm</span>
+                                    <span>@maxRedeem điểm</span>
+                                </div>
+                                <div class="d-none" id="pointsInfo" style="background:#E0F2FE;border-radius:8px;padding:0.6rem 0.8rem;font-size:0.82rem;">
+                                    <i class="fas fa-tag me-1" style="color:#0369A1;"></i>
+                                    Giảm <strong id="pointsDiscountLabel" style="color:#0369A1;">0đ</strong> với <strong id="pointsUsedLabel">0</strong> điểm
+                                </div>
+                                <input type="hidden" id="pointsRedeemedInput" name="PointsRedeemed" value="0" />
+                            </div>
+                        }
+
+                        <button type="submit" class="btn btn-success w-100" id="btnOrder"
+                                style="border-radius:12px;padding:0.8rem;font-weight:700;font-size:1rem;">
                             <i class="fas fa-check-circle me-2"></i>Đặt hàng ngay
                         </button>
                     </form>
                 </div>
             </div>
+
+            <a asp-action="Cart" class="btn btn-outline-secondary animate-fade-in-up" style="border-radius:10px;">
+                <i class="fas fa-arrow-left me-2"></i>Quay lại giỏ hàng
+            </a>
         </div>
 
-        <!-- Tóm tắt đơn hàng -->
+        <!-- Order Summary -->
         <div class="col-lg-5">
-            <div class="card">
-                <div class="card-header"><h6 class="mb-0"><i class="fas fa-list me-2"></i>Đơn hàng của bạn</h6></div>
-                <div class="card-body p-0">
-                    <table class="table table-sm mb-0">
-                        <thead class="table-light">
-                            <tr>
-                                <th>Sản phẩm</th>
-                                <th class="text-center">SL</th>
-                                <th class="text-end">T.Tiền</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var item in Model.CartItems)
-                            {
-                                <tr>
-                                    <td>
-                                        <small>@item.FruitName</small>
-                                        <div><small class="text-muted">@item.UnitPrice.ToString("N0")đ/@item.Unit</small></div>
-                                    </td>
-                                    <td class="text-center">@item.Quantity</td>
-                                    <td class="text-end text-success fw-semibold small">@item.Subtotal.ToString("N0")đ</td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
+            <div class="cart-summary-card animate-fade-in-up stagger-2">
+                <h6 class="fw-bold mb-3" style="font-size:1rem;">
+                    <i class="fas fa-list-check me-2" style="color:var(--primary);"></i>Đơn hàng của bạn
+                </h6>
 
-                    <div class="px-3 py-3 border-top bg-light">
-                        <div class="input-group mb-2">
-                            <input type="text" id="couponCodeInput" class="form-control" placeholder="Nhập mã giảm giá" style="text-transform:uppercase" />
-                            <button type="button" class="btn btn-outline-success px-4" id="btnApplyCoupon">Áp dụng</button>
+                <!-- Items -->
+                <div style="max-height:280px;overflow-y:auto;margin-bottom:1rem;border-radius:10px;border:1px solid var(--border-light);">
+                    @foreach (var item in Model.CartItems)
+                    {
+                        <div class="d-flex align-items-center gap-3 p-3" style="border-bottom:1px solid var(--border-light);">
+                            <img src="~/images/fruits/@(item.ImageUrl ?? "default.jpg")"
+                                 style="width:50px;height:50px;object-fit:cover;border-radius:8px;"
+                                 onerror="this.src='/images/fruits/default.jpg'" />
+                            <div class="flex-grow-1">
+                                <div style="font-weight:600;font-size:0.85rem;">@item.FruitName</div>
+                                <div style="color:var(--text-muted);font-size:0.75rem;">@item.UnitPrice.ToString("N0")đ/@item.Unit × @item.Quantity</div>
+                            </div>
+                            <div style="font-weight:700;color:var(--primary);font-size:0.9rem;">@item.Subtotal.ToString("N0")đ</div>
                         </div>
-                        <div id="couponMessage" class="small mb-2"></div>
-                        <hr class="my-2" />
-                        
-                        <div class="d-flex justify-content-between mb-2">
-                            <span class="text-muted">Tạm tính:</span>
-                            <span class="fw-semibold">@Model.TotalAmount.ToString("N0")đ</span>
-                        </div>
-                        <div class="d-flex justify-content-between mb-2 text-danger d-none" id="discountRow">
-                            <span>Giảm giá (<span id="discountPercentLabel"></span>%):</span>
-                            <span class="fw-semibold">-<span id="discountAmountLabel"></span>đ</span>
-                        </div>
-                        <div class="d-flex justify-content-between fw-bold fs-5 mt-3 pt-2 border-top">
-                            <span>Tổng cộng:</span>
-                            <span class="text-success" id="finalAmountLabel">@Model.TotalAmount.ToString("N0")đ</span>
-                        </div>
+                    }
+                </div>
+
+                <!-- Coupon -->
+                <div class="mb-3">
+                    <label style="font-weight:600;color:var(--text-secondary);font-size:0.82rem;margin-bottom:0.5rem;display:block;">Mã giảm giá</label>
+                    <div class="input-group" style="border-radius:10px;">
+                        <input type="text" id="couponCodeInput" class="form-control"
+                               placeholder="Nhập mã..." style="border-radius:10px 0 0 10px;text-transform:uppercase;" />
+                        <button type="button" class="btn btn-outline-success" id="btnApplyCoupon"
+                                style="border-radius:0 10px 10px 0;font-weight:600;">
+                            Áp dụng
+                        </button>
+                    </div>
+                    <div id="couponMessage" class="small mt-1"></div>
+                </div>
+
+                <div style="border-top:1px solid var(--border);padding-top:1rem;">
+                    <div class="d-flex justify-content-between mb-2" style="font-size:0.88rem;">
+                        <span style="color:var(--text-secondary);">Tạm tính:</span>
+                        <span class="fw-semibold">@Model.TotalAmount.ToString("N0")đ</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2 text-danger d-none" id="discountRow" style="font-size:0.88rem;">
+                        <span>Giảm giá (<span id="discountPercentLabel"></span>%):</span>
+                        <span class="fw-semibold">-<span id="discountAmountLabel"></span>đ</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2 text-primary d-none" id="pointsDiscountRow" style="font-size:0.88rem;">
+                        <span>Giảm điểm (<span id="pointsUsedSummary">0</span> điểm):</span>
+                        <span class="fw-semibold">-<span id="pointsDiscountAmount">0</span>đ</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2" style="font-size:0.88rem;">
+                        <span style="color:var(--text-secondary);">Phí giao hàng:</span>
+                        <span style="color:var(--primary);font-weight:600;">Miễn phí</span>
+                    </div>
+                    <hr style="margin:0.75rem 0;" />
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="fw-bold" style="font-size:1.1rem;">Tổng cộng:</span>
+                        <span style="color:var(--primary);font-weight:800;font-size:1.4rem;" id="finalAmountLabel">@Model.TotalAmount.ToString("N0")đ</span>
                     </div>
                 </div>
             </div>
-            <a asp-action="Cart" class="btn btn-outline-secondary w-100 mt-2">
-                <i class="fas fa-arrow-left me-2"></i>Quay lại giỏ hàng
-            </a>
         </div>
     </div>
 </div>
@@ -100,15 +200,64 @@
     <script>
         document.getElementById('checkoutForm').addEventListener('submit', function () {
             document.getElementById('btnOrder').disabled = true;
-            document.getElementById('btnOrder').innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Đang xử lý...';
+            document.getElementById('btnOrder').innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Đang xử lý đơn hàng...';
         });
+
+        var cashPanel = document.getElementById('cashPaymentPanel');
+        var amountInput = document.getElementById('amountReceivedInput');
+        var changeAlert = document.getElementById('changeAlert');
+        var changeLabel = document.getElementById('changeAmount');
+
+        function getFinalAmount() {
+            var txt = document.getElementById('finalAmountLabel').innerText;
+            return parseInt(txt.replace(/[^0-9]/g, '')) || 0;
+        }
+        function updateChange() {
+            var received = parseInt(amountInput.value) || 0;
+            var total = getFinalAmount();
+            var change = received - total;
+            if (received > 0) {
+                changeAlert.classList.remove('d-none');
+                if (change >= 0) {
+                    changeAlert.style.background = 'var(--primary-pale)';
+                    changeLabel.style.color = 'var(--primary)';
+                    changeLabel.textContent = new Intl.NumberFormat('vi-VN').format(change) + 'đ';
+                } else {
+                    changeAlert.style.background = '#FEE2E2';
+                    changeLabel.style.color = '#EF4444';
+                    changeLabel.textContent = 'Thiếu ' + new Intl.NumberFormat('vi-VN').format(-change) + 'đ';
+                }
+            } else {
+                changeAlert.classList.add('d-none');
+            }
+        }
+        amountInput.addEventListener('input', updateChange);
+
+        document.querySelectorAll('input[name="PaymentMethod"]').forEach(function(r) {
+            r.addEventListener('change', function() {
+                document.querySelectorAll('label[for^="pay"]').forEach(function(l) {
+                    l.style.borderColor = 'var(--border)';
+                    l.style.background = 'var(--bg-card)';
+                    l.style.color = 'var(--text-primary)';
+                });
+                document.querySelector('label[for="' + this.id + '"]').style.borderColor = 'var(--primary)';
+                if (this.value === 'Cash') {
+                    cashPanel.style.display = '';
+                } else {
+                    cashPanel.style.display = 'none';
+                    amountInput.value = '';
+                    changeAlert.classList.add('d-none');
+                }
+            });
+        });
+        document.querySelector('label[for="payCash"]').style.borderColor = 'var(--primary)';
 
         document.getElementById('btnApplyCoupon').addEventListener('click', function() {
             var code = document.getElementById('couponCodeInput').value;
             var msg = document.getElementById('couponMessage');
-            
+
             if(!code) {
-                msg.innerHTML = '<span class="text-danger">Vui lòng nhập mã</span>';
+                msg.innerHTML = '<span style="color:#EF4444;">Vui lòng nhập mã</span>';
                 return;
             }
 
@@ -120,7 +269,7 @@
             .then(res => res.json())
             .then(data => {
                 if(data.success) {
-                    msg.innerHTML = '<span class="text-success"><i class="fas fa-check-circle me-1"></i>Áp dụng thành công!</span>';
+                    msg.innerHTML = '<span style="color:var(--primary);"><i class="fas fa-check-circle me-1"></i>Áp dụng thành công!</span>';
                     document.getElementById('discountRow').classList.remove('d-none');
                     document.getElementById('discountPercentLabel').innerText = data.percent;
                     document.getElementById('discountAmountLabel').innerText = new Intl.NumberFormat('vi-VN').format(data.discountAmount);
@@ -128,14 +277,49 @@
                     document.getElementById('hiddenCouponCode').value = data.code;
                     document.getElementById('couponCodeInput').readOnly = true;
                     this.disabled = true;
+                    recalcPoints();
                 } else {
-                    msg.innerHTML = '<span class="text-danger"><i class="fas fa-times-circle me-1"></i>' + data.message + '</span>';
+                    msg.innerHTML = '<span style="color:#EF4444;"><i class="fas fa-times-circle me-1"></i>' + data.message + '</span>';
                     document.getElementById('hiddenCouponCode').value = '';
                 }
             })
             .catch(err => {
-                msg.innerHTML = '<span class="text-danger">Lỗi kết nối</span>';
+                msg.innerHTML = '<span style="color:#EF4444;">Lỗi kết nối</span>';
             });
         });
+
+        // RQ35: Points redemption slider
+        function recalcPoints() {
+            var slider = document.getElementById('pointsSlider');
+            if (!slider) return;
+            var points = parseInt(slider.value) || 0;
+            var subtotal = @Model.TotalAmount;
+            var discountEl = document.getElementById('discountAmountLabel');
+            var couponDiscount = discountEl ? parseInt(discountEl.innerText.replace(/[^0-9]/g,'')) || 0 : 0;
+            var afterCoupon = subtotal - couponDiscount;
+            var maxDiscount = Math.floor(afterCoupon * 50 / 100);
+            var discount = Math.min(points * 10, maxDiscount);
+
+            document.getElementById('selectedPointsLabel').innerText = points + ' điểm';
+            document.getElementById('pointsDiscountLabel').innerText = new Intl.NumberFormat('vi-VN').format(discount) + 'đ';
+            document.getElementById('pointsUsedLabel').innerText = points;
+            document.getElementById('pointsRedeemedInput').value = points;
+
+            if (points > 0) {
+                document.getElementById('pointsInfo').classList.remove('d-none');
+                document.getElementById('pointsDiscountRow').classList.remove('d-none');
+                document.getElementById('pointsUsedSummary').innerText = points;
+                document.getElementById('pointsDiscountAmount').innerText = new Intl.NumberFormat('vi-VN').format(discount);
+            } else {
+                document.getElementById('pointsInfo').classList.add('d-none');
+                document.getElementById('pointsDiscountRow').classList.add('d-none');
+            }
+
+            var finalAmt = Math.max(0, subtotal - couponDiscount - discount);
+            document.getElementById('finalAmountLabel').innerText = new Intl.NumberFormat('vi-VN').format(finalAmt) + 'đ';
+        }
+
+        var slider = document.getElementById('pointsSlider');
+        if (slider) slider.addEventListener('input', recalcPoints);
     </script>
 }

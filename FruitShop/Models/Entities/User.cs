@@ -15,6 +15,16 @@ namespace FruitShop.Models.Entities
         public bool IsActive { get; set; } = true;
         public DateTime CreatedAt { get; set; } = DateTime.Now;
 
+        // Phase 2: Points & Tiers
+        public int Points { get; set; } = 0;
+        public string Tier { get; set; } = "Standard";
+
+        // Phase 2: Auth Tokens
+        public bool EmailConfirmed { get; set; } = false;
+        public string? VerificationToken { get; set; }
+        public string? ResetToken { get; set; }
+        public DateTime? ResetTokenExpiry { get; set; }
+
         // Navigation property
         public string? RoleName { get; set; }
     }

@@ -1,0 +1,6 @@
+D:\ASM phattrienungdung\FruitShop.E2ETests\obj\Debug\net10.0\ReportGenerator.csproj.AssemblyReference.cache
+D:\ASM phattrienungdung\FruitShop.E2ETests\obj\Debug\net10.0\ReportGenerator.GeneratedMSBuildEditorConfig.editorconfig
+D:\ASM phattrienungdung\FruitShop.E2ETests\obj\Debug\net10.0\ReportGenerator.AssemblyInfoInputs.cache
+D:\ASM phattrienungdung\FruitShop.E2ETests\obj\Debug\net10.0\ReportGenerator.AssemblyInfo.cs
+D:\ASM phattrienungdung\FruitShop.E2ETests\obj\Debug\net10.0\ReportGenerator.csproj.CoreCompileInputs.cache
+D:\ASM phattrienungdung\FruitShop.E2ETests\obj\Debug\net10.0\ReportGenerator.sourcelink.json

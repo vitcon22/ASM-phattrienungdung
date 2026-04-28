@@ -2,20 +2,35 @@
 @{
     ViewData["Title"] = "Dashboard";
     Layout = "_Layout";
-    // Serialize dữ liệu chart dùng JSON
     var topLabels = string.Join(",", Model.TopFruits.Select(x => $"'{x.FruitName}'"));
     var topData   = string.Join(",", Model.TopFruits.Select(x => x.TotalQuantity));
     var dayLabels = string.Join(",", Model.Last7DaysRevenue.Select(x => $"'{x.DayLabel}'"));
     var dayData   = string.Join(",", Model.Last7DaysRevenue.Select(x => x.Revenue));
+    var catLabels = string.Join(",", Model.RevenueByCategories.Select(x => $"'{x.CategoryName}'"));
+    var catData   = string.Join(",", Model.RevenueByCategories.Select(x => x.Revenue));
 }
 @section Breadcrumb {
     <li class="breadcrumb-item active">Dashboard</li>
 }
 
+<!-- Page Header -->
+<div class="page-header animate-fade-in-up">
+    <div>
+        <h1 class="page-header-title mb-1">
+            <i class="fas fa-chart-line me-2" style="color:var(--primary);"></i>Dashboard
+        </h1>
+        <p class="page-header-subtitle mb-0">Chào mừng bạn quay trở lại! Dưới đây là tổng quan hoạt động cửa hàng.</p>
+    </div>
+    <div>
+        <a asp-action="DailyReport" class="btn btn-primary" style="border-radius:10px;">
+            <i class="fas fa-file-alt me-2"></i>Báo cáo cuối ngày
+        </a>
+    </div>
+</div>
+
 <!-- Stats Cards Row -->
 <div class="row g-3 mb-4">
-    <!-- Doanh thu hôm nay -->
-    <div class="col-md-6 col-lg-3">
+    <div class="col-md-6 col-lg-3 animate-fade-in-up stagger-1">
         <div class="stat-card stat-card-green">
             <div class="stat-icon"><i class="fas fa-dollar-sign"></i></div>
             <div class="stat-info">
@@ -24,8 +39,7 @@
             </div>
         </div>
     </div>
-    <!-- Doanh thu tháng -->
-    <div class="col-md-6 col-lg-3">
+    <div class="col-md-6 col-lg-3 animate-fade-in-up stagger-2">
         <div class="stat-card stat-card-blue">
             <div class="stat-icon"><i class="fas fa-chart-bar"></i></div>
             <div class="stat-info">
@@ -34,8 +48,7 @@
             </div>
         </div>
     </div>
-    <!-- Doanh thu năm -->
-    <div class="col-md-6 col-lg-3">
+    <div class="col-md-6 col-lg-3 animate-fade-in-up stagger-3">
         <div class="stat-card stat-card-orange">
             <div class="stat-icon"><i class="fas fa-chart-line"></i></div>
             <div class="stat-info">
@@ -44,8 +57,7 @@
             </div>
         </div>
     </div>
-    <!-- Tổng đơn hàng -->
-    <div class="col-md-6 col-lg-3">
+    <div class="col-md-6 col-lg-3 animate-fade-in-up stagger-4">
         <div class="stat-card stat-card-purple">
             <div class="stat-icon"><i class="fas fa-shopping-bag"></i></div>
             <div class="stat-info">
@@ -58,44 +70,99 @@
 
 <!-- Secondary stats -->
 <div class="row g-3 mb-4">
-    <div class="col-md-4">
+    <div class="col-md-3 animate-fade-in-up stagger-1">
         <div class="mini-stat-card">
-            <i class="fas fa-users text-success me-2"></i>
-            <span>Khách hàng: <strong>@Model.TotalCustomers</strong></span>
+            <i class="fas fa-users text-success" style="font-size:1.2rem;"></i>
+            <div>
+                <span style="color:var(--text-secondary);font-size:0.8rem;">Khách hàng</span><br/>
+                <strong style="font-size:1rem;color:var(--text-primary);">@Model.TotalCustomers</strong>
+            </div>
         </div>
     </div>
-    <div class="col-md-4">
+    <div class="col-md-3 animate-fade-in-up stagger-2">
         <div class="mini-stat-card">
-            <i class="fas fa-lemon text-warning me-2"></i>
-            <span>Sản phẩm: <strong>@Model.TotalFruits</strong></span>
+            <i class="fas fa-user-plus text-primary" style="font-size:1.2rem;"></i>
+            <div>
+                <span style="color:var(--text-secondary);font-size:0.8rem;">Mới tháng này</span><br/>
+                <strong class="text-primary" style="font-size:1rem;">@Model.NewCustomersThisMonth</strong>
+            </div>
         </div>
     </div>
-    <div class="col-md-4">
+    <div class="col-md-3 animate-fade-in-up stagger-3">
         <div class="mini-stat-card">
-            <i class="fas fa-clock text-info me-2"></i>
-            <span>Chờ xác nhận: <strong class="text-warning">@Model.PendingOrders</strong></span>
+            <i class="fas fa-lemon text-warning" style="font-size:1.2rem;"></i>
+            <div>
+                <span style="color:var(--text-secondary);font-size:0.8rem;">Sản phẩm</span><br/>
+                <strong style="font-size:1rem;color:var(--text-primary);">@Model.TotalFruits</strong>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 animate-fade-in-up stagger-4">
+        <div class="mini-stat-card">
+            <i class="fas fa-clock text-warning" style="font-size:1.2rem;"></i>
+            <div>
+                <span style="color:var(--text-secondary);font-size:0.8rem;">Chờ xác nhận</span><br/>
+                <strong class="text-warning" style="font-size:1rem;">@Model.PendingOrders</strong>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Inventory Row -->
+<div class="row g-3 mb-4">
+    <div class="col-md-6 col-lg-4 animate-fade-in-up stagger-1">
+        <div class="stat-card stat-card-blue">
+            <div class="stat-icon"><i class="fas fa-warehouse"></i></div>
+            <div class="stat-info">
+                <div class="stat-label">Giá trị tồn kho</div>
+                <div class="stat-value">@Model.TotalStockValue.ToString("N0")đ</div>
+                <small style="opacity:0.75;">@Model.TotalStockQuantity sản phẩm trong kho</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-lg-4 animate-fade-in-up stagger-2">
+        <div class="stat-card stat-card-red">
+            <div class="stat-icon"><i class="fas fa-exclamation-triangle"></i></div>
+            <div class="stat-info">
+                <div class="stat-label">Tồn kho sắp hết</div>
+                <div class="stat-value">@Model.LowStockFruits.Count</div>
+                <small style="opacity:0.75;">sản phẩm dưới ngưỡng</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-12 col-lg-4 animate-fade-in-up stagger-3">
+        <div class="stat-card stat-card-teal">
+            <div class="stat-icon"><i class="fas fa-file-alt"></i></div>
+            <div class="stat-info">
+                <div class="stat-label">Báo cáo cuối ngày</div>
+                <div class="stat-value" style="font-size:1.1rem;">Xem chi tiết</div>
+                <a asp-action="DailyReport" class="btn btn-sm mt-2" style="background:rgba(255,255,255,0.2);color:#fff;border:none;border-radius:8px;">
+                    <i class="fas fa-chart-pie me-1"></i>Xem ngay
+                </a>
+            </div>
         </div>
     </div>
 </div>
 
 <!-- Charts Row -->
 <div class="row g-4 mb-4">
-    <!-- Doanh thu 7 ngày - Line Chart -->
-    <div class="col-lg-7">
+    <!-- Doanh thu 7 ngày -->
+    <div class="col-lg-7 animate-fade-in-up">
         <div class="card h-100">
-            <div class="card-header">
-                <h6 class="mb-0"><i class="fas fa-chart-line me-2 text-success"></i>Doanh thu 7 ngày gần nhất</h6>
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="mb-0 fw-bold"><i class="fas fa-chart-line me-2" style="color:var(--primary);"></i>Doanh thu 7 ngày gần nhất</h6>
+                <span class="badge" style="background:var(--primary-pale);color:var(--primary-dark);border-radius:50px;">7 ngày</span>
             </div>
             <div class="card-body">
                 <canvas id="revenueChart" height="200"></canvas>
             </div>
         </div>
     </div>
-    <!-- Đơn hàng theo trạng thái - Doughnut -->
-    <div class="col-lg-5">
+    <!-- Đơn hàng theo trạng thái -->
+    <div class="col-lg-5 animate-fade-in-up stagger-2">
         <div class="card h-100">
-            <div class="card-header">
-                <h6 class="mb-0"><i class="fas fa-chart-pie me-2 text-primary"></i>Đơn hàng theo trạng thái</h6>
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="mb-0 fw-bold"><i class="fas fa-chart-pie me-2" style="color:var(--info);"></i>Đơn hàng theo trạng thái</h6>
             </div>
             <div class="card-body d-flex align-items-center justify-content-center">
                 <canvas id="statusChart" height="200"></canvas>
@@ -104,52 +171,57 @@
     </div>
 </div>
 
-<!-- Top Fruits + Low Stock -->
-<div class="row g-4">
-    <!-- Top 5 trái cây bán chạy - Bar Chart -->
-    <div class="col-lg-7">
+<!-- Revenue by Category + Top Fruits -->
+<div class="row g-4 mb-4">
+    <!-- Top 5 trái cây bán chạy -->
+    <div class="col-lg-7 animate-fade-in-up">
         <div class="card">
-            <div class="card-header">
-                <h6 class="mb-0"><i class="fas fa-trophy me-2 text-warning"></i>Top 5 trái cây bán chạy</h6>
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="mb-0 fw-bold"><i class="fas fa-trophy me-2" style="color:var(--accent);"></i>Top 5 trái cây bán chạy</h6>
             </div>
             <div class="card-body">
-                <canvas id="topFruitsChart" height="200"></canvas>
+                <canvas id="topFruitsChart" height="180"></canvas>
             </div>
         </div>
     </div>
     <!-- Tồn kho thấp -->
-    <div class="col-lg-5">
+    <div class="col-lg-5 animate-fade-in-up stagger-2">
         <div class="card">
-            <div class="card-header d-flex justify-content-between">
-                <h6 class="mb-0"><i class="fas fa-exclamation-triangle me-2 text-danger"></i>Tồn kho thấp</h6>
-                <span class="badge bg-danger">@Model.LowStockFruits.Count sản phẩm</span>
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="mb-0 fw-bold"><i class="fas fa-exclamation-triangle me-2" style="color:var(--danger);"></i>Tồn kho thấp</h6>
+                <span class="badge" style="background:#FEE2E2;color:#991B1B;border-radius:50px;">@Model.LowStockFruits.Count</span>
             </div>
             <div class="card-body p-0">
                 @if (!Model.LowStockFruits.Any())
                 {
-                    <p class="text-center text-muted py-3">Không có sản phẩm nào sắp hết!</p>
+                    <div class="text-center py-4">
+                        <div style="width:60px;height:60px;background:var(--primary-pale);border-radius:50%;display:inline-flex;align-items:center;justify-content:center;margin-bottom:0.75rem;">
+                            <i class="fas fa-check-circle" style="font-size:1.5rem;color:var(--primary);"></i>
+                        </div>
+                        <p class="text-muted small mb-0">Không có sản phẩm nào sắp hết!</p>
+                    </div>
                 }
                 else
                 {
-                    <table class="table table-sm mb-0">
-                        <thead class="table-light">
+                    <table class="table mb-0">
+                        <thead>
                             <tr>
-                                <th>Sản phẩm</th>
-                                <th class="text-center">Tồn kho</th>
-                                <th class="text-center">Hành động</th>
+                                <th style="padding:0.75rem 1rem;">Sản phẩm</th>
+                                <th class="text-center" style="padding:0.75rem 1rem;">Tồn kho</th>
+                                <th class="text-center" style="padding:0.75rem 1rem;">Hành động</th>
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach (var f in Model.LowStockFruits)
+                            @foreach (var f in Model.LowStockFruits.Take(6))
                             {
                                 <tr>
-                                    <td class="small">@f.FruitName</td>
+                                    <td style="padding:0.6rem 1rem;font-weight:600;font-size:0.85rem;">@f.FruitName</td>
                                     <td class="text-center">
-                                        <span class="badge bg-danger">@f.StockQuantity @f.Unit</span>
+                                        <span class="badge" style="background:#FEE2E2;color:#991B1B;">@f.StockQuantity @f.Unit</span>
                                     </td>
                                     <td class="text-center">
                                         <a asp-controller="Fruit" asp-action="Edit" asp-route-id="@f.FruitId"
-                                           class="btn btn-xs btn-outline-warning" style="font-size:0.7rem;padding:2px 6px;">
+                                           class="btn-action-edit" style="font-size:0.75rem;">
                                             <i class="fas fa-edit"></i>
                                         </a>
                                     </td>
@@ -158,6 +230,61 @@
                         </tbody>
                     </table>
                 }
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Revenue by Category -->
+<div class="row g-4 animate-fade-in-up">
+    <div class="col-lg-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="mb-0 fw-bold"><i class="fas fa-chart-pie me-2" style="color:var(--purple);"></i>Cơ cấu doanh thu theo Danh mục</h6>
+            </div>
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-md-5 text-center">
+                        <canvas id="categoryRevenueChart" style="max-height: 240px;"></canvas>
+                    </div>
+                    <div class="col-md-7">
+                        <div class="table-responsive">
+                            <table class="table table-sm table-borderless align-middle mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>Danh mục</th>
+                                        <th class="text-end">Doanh thu</th>
+                                        <th class="text-end">Tỉ trọng</th>
+                                        <th style="width:80px;">Biểu đồ</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @{
+                                        decimal totalRev = Model.RevenueByCategories.Sum(x => x.Revenue);
+                                        var catColors = new[] { "#10B981", "#3B82F6", "#F59E0B", "#EF4444", "#8B5CF6", "#EC4899" };
+                                    }
+                                    @foreach (var c in Model.RevenueByCategories.Select((item, idx) => new { item, idx }))
+                                    {
+                                        var pct = totalRev > 0 ? c.item.Revenue / totalRev * 100 : 0;
+                                        <tr>
+                                            <td>
+                                                <span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:@catColors[c.idx % catColors.Length];margin-right:8px;"></span>
+                                                @c.item.CategoryName
+                                            </td>
+                                            <td class="text-end fw-semibold">@c.item.Revenue.ToString("N0")đ</td>
+                                            <td class="text-end text-muted">@pct.ToString("0.0")%</td>
+                                            <td>
+                                                <div style="height:6px;background:var(--bg-secondary);border-radius:3px;overflow:hidden;">
+                                                    <div style="height:100%;width:@pct.ToString("0");background:@catColors[c.idx % catColors.Length];border-radius:3px;transition:width 1s ease;"></div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -174,19 +301,42 @@ new Chart(ctx1, {
         datasets: [{
             label: 'Doanh thu (đ)',
             data: [@Html.Raw(dayData)],
-            borderColor: '#2E7D32',
-            backgroundColor: 'rgba(46,125,50,0.1)',
-            borderWidth: 2,
+            borderColor: '#10B981',
+            backgroundColor: 'rgba(16,185,129,0.1)',
+            borderWidth: 2.5,
             fill: true,
             tension: 0.4,
-            pointBackgroundColor: '#2E7D32'
+            pointBackgroundColor: '#10B981',
+            pointBorderColor: '#fff',
+            pointBorderWidth: 2,
+            pointRadius: 4,
+            pointHoverRadius: 6
         }]
     },
     options: {
         responsive: true,
-        plugins: { legend: { display: false } },
+        plugins: {
+            legend: { display: false },
+            tooltip: {
+                backgroundColor: '#0F172A',
+                titleColor: '#fff',
+                bodyColor: '#E2E8F0',
+                padding: 12,
+                cornerRadius: 8,
+                callbacks: {
+                    label: ctx => ctx.dataset.label + ': ' + ctx.raw.toLocaleString('vi') + 'đ'
+                }
+            }
+        },
         scales: {
-            y: { ticks: { callback: v => v.toLocaleString('vi') + 'đ' } }
+            x: {
+                grid: { display: false },
+                ticks: { color: '#94A3B8', font: { size: 11 } }
+            },
+            y: {
+                grid: { color: '#F1F5F9' },
+                ticks: { callback: v => v.toLocaleString('vi') + 'đ', color: '#94A3B8', font: { size: 11 } }
+            }
         }
     }
 });
@@ -199,14 +349,25 @@ new Chart(ctx2, {
         labels: ['Chờ xác nhận','Đã xác nhận','Đang giao','Đã giao','Đã huỷ'],
         datasets: [{
             data: [@Model.PendingOrders, @Model.ConfirmedOrders, @Model.ShippingOrders, @Model.DeliveredOrders, @Model.CancelledOrders],
-            backgroundColor: ['#FFC107','#2196F3','#00BCD4','#4CAF50','#F44336'],
+            backgroundColor: ['#F59E0B','#3B82F6','#6366F1','#10B981','#EF4444'],
+            borderWidth: 0,
             hoverOffset: 8
         }]
     },
     options: {
         responsive: true,
+        cutout: '65%',
         plugins: {
-            legend: { position: 'bottom', labels: { padding: 10, font: { size: 11 } } }
+            legend: {
+                position: 'bottom',
+                labels: {
+                    padding: 12,
+                    font: { size: 11, family: "'Plus Jakarta Sans', sans-serif" },
+                    usePointStyle: true,
+                    pointStyleWidth: 8
+                }
+            },
+            tooltip: { cornerRadius: 8 }
         }
     }
 });
@@ -220,14 +381,57 @@ new Chart(ctx3, {
         datasets: [{
             label: 'Số lượng bán',
             data: [@Html.Raw(topData)],
-            backgroundColor: ['#2E7D32','#388E3C','#43A047','#4CAF50','#66BB6A'],
-            borderRadius: 6
+            backgroundColor: ['#10B981','#34D399','#6EE7B7','#A7F3D0','#D1FAE5'],
+            borderRadius: 8,
+            borderSkipped: false
         }]
     },
     options: {
         responsive: true,
-        plugins: { legend: { display: false } },
-        scales: { y: { beginAtZero: true } }
+        plugins: {
+            legend: { display: false },
+            tooltip: { cornerRadius: 8 }
+        },
+        scales: {
+            x: {
+                grid: { display: false },
+                ticks: { color: '#64748B', font: { size: 11 } }
+            },
+            y: {
+                grid: { color: '#F1F5F9' },
+                ticks: { color: '#64748B', font: { size: 11 } },
+                beginAtZero: true
+            }
+        }
+    }
+});
+
+// === PIE CHART: Doanh thu theo danh mục ===
+const catColorsJS = ['#10B981','#3B82F6','#F59E0B','#EF4444','#8B5CF6','#EC4899'];
+const ctx4 = document.getElementById('categoryRevenueChart').getContext('2d');
+new Chart(ctx4, {
+    type: 'doughnut',
+    data: {
+        labels: [@Html.Raw(catLabels)],
+        datasets: [{
+            data: [@Html.Raw(catData)],
+            backgroundColor: catColorsJS,
+            borderWidth: 0,
+            hoverOffset: 8
+        }]
+    },
+    options: {
+        responsive: true,
+        cutout: '60%',
+        plugins: {
+            legend: { display: false },
+            tooltip: {
+                callbacks: {
+                    label: ctx => ctx.label + ': ' + ctx.raw.toLocaleString('vi') + 'đ'
+                },
+                cornerRadius: 8
+            }
+        }
     }
 });
 </script>

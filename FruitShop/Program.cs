@@ -1,7 +1,12 @@
+using FruitShop.Constants;
 using FruitShop.Filters;
 using FruitShop.Helpers;
+using FruitShop.Infrastructure;
 using FruitShop.Middleware;
 using FruitShop.Models.DAL;
+using FruitShop.Models.Entities;
+using FruitShop.Services;
+using OfficeOpenXml;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,26 +14,30 @@ var builder = WebApplication.CreateBuilder(args);
    ĐĂNG KÝ SERVICES
    ===================================================== */
 
-// MVC với Razor Views
-builder.Services.AddControllersWithViews();
+// MVC với Razor Views và Global Filters
+builder.Services.AddControllersWithViews(options =>
+{
+    options.Filters.Add<AuditLogFilterAttribute>();
+    options.Filters.Add<ExceptionHandlerFilter>();
+});
 
 // Session (dùng cho giỏ hàng + xác thực)
-builder.Services.AddDistributedMemoryCache(); // Cache trong bộ nhớ
+builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>
 {
-    options.IdleTimeout        = TimeSpan.FromHours(2);  // Session tồn tại 2 giờ
+    options.IdleTimeout        = TimeSpan.FromHours(2);
     options.Cookie.HttpOnly    = true;
     options.Cookie.IsEssential = true;
     options.Cookie.SameSite    = SameSiteMode.Strict;
 });
 
-// IHttpContextAccessor (cần trong Razor views để truy cập Session)
+// IHttpContextAccessor
 builder.Services.AddHttpContextAccessor();
 
-// ===== ĐĂNG KÝ DATABASE CONTEXT =====
+// ===== DATABASE CONTEXT =====
 builder.Services.AddSingleton<FruitShopContext>();
 
-// ===== ĐĂNG KÝ REPOSITORIES (Scoped - 1 instance / request) =====
+// ===== REPOSITORIES (Scoped - 1 instance / request) =====
 builder.Services.AddScoped<UserRepository>();
 builder.Services.AddScoped<CategoryRepository>();
 builder.Services.AddScoped<FruitRepository>();
@@ -37,31 +46,70 @@ builder.Services.AddScoped<ReviewRepository>();
 builder.Services.AddScoped<CouponRepository>();
 builder.Services.AddScoped<WishlistRepository>();
 builder.Services.AddScoped<InventoryLogRepository>();
+builder.Services.AddScoped<SupplierRepository>();
+builder.Services.AddScoped<BatchRepository>();
+builder.Services.AddScoped<AuditLogRepository>();
+builder.Services.AddScoped<OperatingCostRepository>();
 
-// ===== ĐĂNG KÝ HELPERS =====
+// ===== SERVICE LAYER (mới - clean architecture) =====
+builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddScoped<IExportService, ExportService>();
+builder.Services.AddScoped<ICartService, CartService>();
+builder.Services.AddScoped<IFileStorageService, FileStorageService>();
+builder.Services.AddScoped<IAuditLogService, AuditLogService>();
+builder.Services.AddScoped<EmailTemplateService>();
+
+// ===== VALIDATION HELPER =====
 builder.Services.AddScoped<ValidationHelper>();
+
+// ===== AUTHENTICATION (OAuth) =====
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultScheme = AppConstants.Auth.CookieScheme;
+})
+.AddCookie(AppConstants.Auth.CookieScheme, options =>
+{
+    options.LoginPath    = AppConstants.Auth.LoginPath;
+    options.LogoutPath   = AppConstants.Auth.LogoutPath;
+})
+.AddGoogle(options =>
+{
+    options.ClientId     = builder.Configuration["Authentication:Google:ClientId"] ?? "PLACEHOLDER";
+    options.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"] ?? "PLACEHOLDER";
+})
+.AddFacebook(options =>
+{
+    options.AppId     = builder.Configuration["Authentication:Facebook:AppId"] ?? "PLACEHOLDER";
+    options.AppSecret = builder.Configuration["Authentication:Facebook:AppSecret"] ?? "PLACEHOLDER";
+});
 
 /* =====================================================
    BUILD APP
    ===================================================== */
 var app = builder.Build();
 
-// Middleware mặc định
+// EPPlus license
+ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+
+// Middleware pipeline
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
     app.UseHsts();
+    app.UseHttpsRedirection();
 }
 
-app.UseHttpsRedirection();
-app.UseStaticFiles(); // Phục vụ wwwroot (ảnh, CSS, JS)
+app.UseStaticFiles();
 
 app.UseRouting();
 
 // Session TRƯỚC AuthMiddleware
 app.UseSession();
 
-// Custom AuthMiddleware - kiểm tra session trước các route
+// Global Exception Handler - bắt tất cả exception
+app.UseMiddleware<GlobalExceptionMiddleware>();
+
+// Custom AuthMiddleware - kiểm tra session
 app.UseMiddleware<AuthMiddleware>();
 
 app.UseAuthorization();

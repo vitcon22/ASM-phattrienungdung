@@ -8,8 +8,10 @@ namespace FruitShop.Models.Entities
         public int FruitId { get; set; }
         public string FruitName { get; set; } = string.Empty;
         public int CategoryId { get; set; }
+        public int? SupplierId { get; set; }
         public decimal Price { get; set; }
         public int StockQuantity { get; set; }
+        public int MinStock { get; set; } = 10;
         public string Unit { get; set; } = string.Empty; // kg, hộp, trái
         public string? Origin { get; set; }              // Xuất xứ
         public string? Description { get; set; }
@@ -19,6 +21,7 @@ namespace FruitShop.Models.Entities
 
         // Navigation properties (join data)
         public string? CategoryName { get; set; }
+        public string? SupplierName { get; set; }
 
         /// <summary>
         /// Kiểm tra còn hàng không

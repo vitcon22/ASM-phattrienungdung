@@ -1,0 +1,144 @@
+@using FruitShop.Helpers
+@model PagedList<FruitShop.Models.Entities.User>
+@{
+    ViewData["Title"] = "Quản lý khách hàng";
+    Layout = "_Layout";
+}
+@section Breadcrumb {
+    <li class="breadcrumb-item active">Khách hàng</li>
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="page-title"><i class="fas fa-users me-2 text-success"></i>Quản lý khách hàng</h4>
+    <div class="d-flex gap-2">
+        <span class="badge bg-primary fs-6 d-flex align-items-center">@Model.TotalCount khách hàng</span>
+    </div>
+</div>
+
+<!-- Bộ lọc -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3 align-items-end">
+            <div class="col-md-8">
+                <label class="form-label">Tìm kiếm khách hàng</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="fas fa-search"></i></span>
+                    <input type="text" name="keyword" class="form-control"
+                           placeholder="Tên, email, điện thoại..."
+                           value="@ViewBag.Keyword" />
+                </div>
+            </div>
+            <div class="col-md-4 d-flex gap-2">
+                <button type="submit" class="btn btn-success flex-fill"><i class="fas fa-search me-1"></i>Tìm kiếm</button>
+                <a asp-action="Index" class="btn btn-outline-secondary flex-fill"><i class="fas fa-redo"></i></a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Danh sách -->
+<div class="card">
+    <div class="card-body p-0">
+        <table class="table table-hover mb-0 align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th style="width:40px">#</th>
+                    <th>Khách hàng</th>
+                    <th>Liên hệ</th>
+                    <th class="text-center">Hạng</th>
+                    <th class="text-center">Điểm</th>
+                    <th class="text-center">Trạng thái</th>
+                    <th class="text-center">Hành động</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (!Model.Items.Any())
+                {
+                    <tr><td colspan="7" class="text-center py-4 text-muted">Không tìm thấy khách hàng nào</td></tr>
+                }
+                @foreach (var user in Model.Items)
+                {
+                    <tr class="@(!user.IsActive ? "table-danger" : "")">
+                        <td class="text-muted small">@user.UserId</td>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="user-list-avatar">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                                <div>
+                                    <div class="fw-semibold">@user.FullName</div>
+                                    <small class="text-muted">Tham gia: @user.CreatedAt.ToString("dd/MM/yyyy")</small>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="small">
+                            <div><i class="fas fa-envelope text-muted me-1"></i>@user.Email</div>
+                            <div><i class="fas fa-phone text-muted me-1"></i>@(user.Phone ?? "—")</div>
+                        </td>
+                        <td class="text-center">
+                            <span class="badge bg-warning text-dark"><i class="fas fa-medal me-1"></i>@user.Tier</span>
+                        </td>
+                        <td class="text-center fw-bold text-success">
+                            @user.Points.ToString("N0")
+                        </td>
+                        <td class="text-center">
+                            @if (user.IsActive)
+                            {
+                                <span class="badge bg-success">Hoạt động</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">Đã khoá</span>
+                            }
+                        </td>
+                        <td class="text-center">
+                            <div class="d-flex gap-1 justify-content-center">
+                                <a asp-action="Details" asp-route-id="@user.UserId"
+                                   class="btn btn-sm btn-outline-primary" title="Xem chi tiết & Lịch sử mua hàng">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <form asp-action="ToggleActive" method="post" class="d-inline">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@user.UserId" />
+                                    <button type="submit"
+                                            class="btn btn-sm @(user.IsActive ? "btn-outline-warning" : "btn-outline-success")"
+                                            title="@(user.IsActive ? "Khoá tài khoản" : "Mở khoá")"
+                                            onclick="return confirm('@(user.IsActive ? $"Khoá tài khoản {user.FullName}?" : $"Mở khoá tài khoản {user.FullName}?")')">
+                                        <i class="fas fa-@(user.IsActive ? "lock" : "lock-open")"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@if (Model.TotalPages > 1)
+{
+    <nav class="mt-3">
+        <ul class="pagination justify-content-center">
+            <li class="page-item @(!Model.HasPreviousPage ? "disabled" : "")">
+                <a class="page-link" asp-action="Index" asp-route-page="@(Model.CurrentPage-1)"
+                   asp-route-keyword="@ViewBag.Keyword">
+                    <i class="fas fa-chevron-left"></i>
+                </a>
+            </li>
+            @for (int i = 1; i <= Model.TotalPages; i++)
+            {
+                <li class="page-item @(i == Model.CurrentPage ? "active" : "")">
+                    <a class="page-link" asp-action="Index" asp-route-page="@i"
+                       asp-route-keyword="@ViewBag.Keyword">@i</a>
+                </li>
+            }
+            <li class="page-item @(!Model.HasNextPage ? "disabled" : "")">
+                <a class="page-link" asp-action="Index" asp-route-page="@(Model.CurrentPage+1)"
+                   asp-route-keyword="@ViewBag.Keyword">
+                    <i class="fas fa-chevron-right"></i>
+                </a>
+            </li>
+        </ul>
+    </nav>
+}

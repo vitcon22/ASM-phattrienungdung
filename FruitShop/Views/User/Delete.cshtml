@@ -1,0 +1,62 @@
+@model FruitShop.Models.Entities.User
+@{
+    ViewData["Title"] = "Xóa tài khoản";
+    Layout = "_Layout";
+}
+@section Breadcrumb {
+    <li class="breadcrumb-item"><a asp-action="Index">Người dùng</a></li>
+    <li class="breadcrumb-item active">Xóa</li>
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-6">
+        <div class="card border-danger shadow">
+            <div class="card-header bg-danger text-white">
+                <h5 class="mb-0"><i class="fas fa-trash me-2"></i>Xác nhận xóa tài khoản</h5>
+            </div>
+            <div class="card-body text-center">
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-triangle fa-2x mb-3"></i>
+                    <h5>Bạn có chắc chắn muốn xóa tài khoản này?</h5>
+                    <p class="mb-1">Hành động này sẽ xóa tài khoản <strong>@Model.FullName</strong>.</p>
+                    <p class="mb-0 text-muted small">Email: @Model.Email | Vai trò: @Model.RoleName</p>
+                </div>
+
+                <div class="row g-2 mb-4">
+                    <div class="col-4">
+                        <div class="border rounded p-2">
+                            <div class="text-muted small">Vai trò</div>
+                            <strong>@Model.RoleName</strong>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="border rounded p-2">
+                            <div class="text-muted small">Email</div>
+                            <strong class="small">@Model.Email</strong>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="border rounded p-2">
+                            <div class="text-muted small">Trạng thái</div>
+                            <strong>@(Model.IsActive ? "Hoạt động" : "Khoá")</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <form asp-action="DeleteConfirmed" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" value="@Model.UserId" />
+                    <div class="d-flex gap-2 justify-content-center">
+                        <a asp-action="Index" class="btn btn-outline-secondary px-4">
+                            <i class="fas fa-arrow-left me-1"></i>Hủy
+                        </a>
+                        <button type="submit" class="btn btn-danger px-4"
+                                onclick="return confirm('Xác nhận xóa tài khoản này?');">
+                            <i class="fas fa-trash me-1"></i>Xóa vĩnh viễn
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

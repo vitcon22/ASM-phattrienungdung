@@ -1,0 +1,12 @@
+{
+  "version": 2,
+  "dgSpecHash": "V0Tyq6ZzQoE=",
+  "success": true,
+  "projectFilePath": "D:\\ASM phattrienungdung\\ExportDocx\\ExportDocx.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\Vietn\\.nuget\\packages\\documentformat.openxml\\3.5.1\\documentformat.openxml.3.5.1.nupkg.sha512",
+    "C:\\Users\\Vietn\\.nuget\\packages\\documentformat.openxml.framework\\3.5.1\\documentformat.openxml.framework.3.5.1.nupkg.sha512",
+    "C:\\Users\\Vietn\\.nuget\\packages\\system.io.packaging\\10.0.2\\system.io.packaging.10.0.2.nupkg.sha512"
+  ],
+  "logs": []
+}

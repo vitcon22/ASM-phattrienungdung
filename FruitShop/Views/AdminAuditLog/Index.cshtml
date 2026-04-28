@@ -1,0 +1,161 @@
+@using FruitShop.Helpers
+@model PagedList<FruitShop.Models.Entities.AuditLog>
+@{
+    ViewData["Title"] = "Nhật ký hệ thống";
+    Layout = "_Layout";
+}
+
+@section Breadcrumb {
+    <li class="breadcrumb-item"><a href="@Url.Action("Index", "Dashboard")">Dashboard</a></li>
+    <li class="breadcrumb-item active">Nhật ký hệ thống</li>
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="page-title mb-0">
+        <i class="fas fa-user-secret text-danger me-2"></i>Nhật ký hệ thống (Audit Logs)
+    </h4>
+    <span class="badge bg-secondary fs-6">@Model.TotalCount hoạt động</span>
+</div>
+
+<form method="get" class="card shadow-sm border-0 mb-4">
+    <div class="card-body">
+        <div class="row g-3">
+            <div class="col-md-3">
+                <label class="form-label small fw-semibold text-muted">Từ khóa</label>
+                <input type="text" name="keyword" value="@ViewBag.Keyword" class="form-control"
+                       placeholder="Tài khoản, thao tác, chi tiết..." />
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small fw-semibold text-muted">Controller</label>
+                <select name="controller" class="form-select">
+                    <option value="">-- Tất cả --</option>
+                    @if (ViewBag.Controllers != null)
+                    {
+                        foreach (var c in (IEnumerable<SelectListItem>)ViewBag.Controllers)
+                        {
+                            <option value="@c.Value" selected="@(c.Selected)">@c.Text</option>
+                        }
+                    }
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small fw-semibold text-muted">Từ ngày</label>
+                <input type="date" name="fromDate" value="@ViewBag.FromDate" class="form-control" />
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small fw-semibold text-muted">Đến ngày</label>
+                <input type="date" name="toDate" value="@ViewBag.ToDate" class="form-control" />
+            </div>
+            <div class="col-md-2 d-flex align-items-end gap-2">
+                <button type="submit" class="btn btn-primary flex-fill">
+                    <i class="fas fa-search me-1"></i>Lọc
+                </button>
+                <a asp-action="Index" class="btn btn-outline-secondary">
+                    <i class="fas fa-redo"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+</form>
+
+<div class="card shadow-sm border-0">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th style="width: 16%">Thời gian</th>
+                        <th style="width: 15%">Tài khoản</th>
+                        <th style="width: 13%">Controller</th>
+                        <th style="width: 12%">Thao tác</th>
+                        <th style="width: 30%">Chi tiết</th>
+                        <th style="width: 14%">IP Address</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var log in Model.Items)
+                    {
+                        <tr>
+                            <td>
+                                <span class="badge bg-light text-dark border">
+                                    <i class="far fa-clock me-1"></i>@log.Timestamp.ToString("dd/MM/yyyy HH:mm:ss")
+                                </span>
+                            </td>
+                            <td>
+                                @if (string.IsNullOrEmpty(log.UserName))
+                                {
+                                    <span class="text-muted fst-italic">Khách vô danh</span>
+                                }
+                                else
+                                {
+                                    <strong>@log.UserName</strong>
+                                }
+                            </td>
+                            <td><span class="badge bg-secondary">@log.ControllerName</span></td>
+                            <td>
+                                @{
+                                    var badgeClass = "bg-primary";
+                                    if (log.ActionName.Contains("Delete") || log.ActionName.Contains("Remove")) badgeClass = "bg-danger";
+                                    else if (log.ActionName.Contains("Create") || log.ActionName.Contains("Add")) badgeClass = "bg-success";
+                                    else if (log.ActionName.Contains("Edit") || log.ActionName.Contains("Update")) badgeClass = "bg-warning text-dark";
+                                }
+                                <span class="badge @badgeClass">@log.ActionName</span>
+                            </td>
+                            <td class="text-wrap small">@log.Details</td>
+                            <td class="text-muted small">@log.IpAddress</td>
+                        </tr>
+                    }
+                    @if (!Model.Items.Any())
+                    {
+                        <tr>
+                            <td colspan="6" class="text-center text-muted py-4">
+                                <i class="fas fa-inbox fa-2x mb-2 d-block"></i>
+                                Không có kết quả phù hợp
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@if (Model.TotalPages > 1)
+{
+    <nav class="mt-3">
+        <ul class="pagination justify-content-center">
+            <li class="page-item @(!Model.HasPreviousPage ? "disabled" : "")">
+                <a class="page-link" asp-action="Index"
+                   asp-route-page="@(Model.CurrentPage - 1)"
+                   asp-route-keyword="@ViewBag.Keyword"
+                   asp-route-controller="@ViewBag.Controller"
+                   asp-route-fromDate="@ViewBag.FromDate"
+                   asp-route-toDate="@ViewBag.ToDate">
+                    <i class="fas fa-chevron-left"></i>
+                </a>
+            </li>
+            @for (int i = Math.Max(1, Model.CurrentPage - 2); i <= Math.Min(Model.TotalPages, Model.CurrentPage + 2); i++)
+            {
+                <li class="page-item @(i == Model.CurrentPage ? "active" : "")">
+                    <a class="page-link" asp-action="Index"
+                       asp-route-page="@i"
+                       asp-route-keyword="@ViewBag.Keyword"
+                       asp-route-controller="@ViewBag.Controller"
+                       asp-route-fromDate="@ViewBag.FromDate"
+                       asp-route-toDate="@ViewBag.ToDate">@i</a>
+                </li>
+            }
+            <li class="page-item @(!Model.HasNextPage ? "disabled" : "")">
+                <a class="page-link" asp-action="Index"
+                   asp-route-page="@(Model.CurrentPage + 1)"
+                   asp-route-keyword="@ViewBag.Keyword"
+                   asp-route-controller="@ViewBag.Controller"
+                   asp-route-fromDate="@ViewBag.FromDate"
+                   asp-route-toDate="@ViewBag.ToDate">
+                    <i class="fas fa-chevron-right"></i>
+                </a>
+            </li>
+        </ul>
+        <p class="text-center text-muted small">Trang @Model.CurrentPage / @Model.TotalPages — Tổng @Model.TotalCount bản ghi</p>
+    </nav>
+}

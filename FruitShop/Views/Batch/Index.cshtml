@@ -1,0 +1,137 @@
+@model FruitShop.Helpers.PagedList<FruitShop.Models.Entities.Batch>
+@{
+    ViewData["Title"] = "Quản lý Lô hàng";
+    Layout = "_Layout";
+    var expiringSoon = ViewBag.ExpiringSoon as List<FruitShop.Models.Entities.Batch> ?? new();
+}
+@section Breadcrumb {
+    <li class="breadcrumb-item active">Lô hàng</li>
+}
+
+@if (expiringSoon.Count > 0)
+{
+    <div class="alert alert-danger d-flex align-items-center mb-3">
+        <i class="fas fa-exclamation-triangle me-2 fs-5"></i>
+        <div>
+            <strong>Cảnh báo!</strong> Có <strong>@expiringSoon.Count</strong> lô hàng sắp hết hạn trong 3 ngày tới.
+            <a href="@Url.Action("ExpiryWarning")" class="alert-link ms-2">Xem chi tiết →</a>
+        </div>
+    </div>
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="page-title"><i class="fas fa-boxes me-2 text-primary"></i>Quản lý Lô hàng</h4>
+    <div class="btn-group">
+        <a href="@Url.Action("ExpiryWarning")" class="btn btn-warning">
+            <i class="fas fa-clock me-1"></i>Sắp hết hạn
+        </a>
+        <a href="@Url.Action("Create")" class="btn btn-success">
+            <i class="fas fa-plus me-1"></i>Nhập lô mới
+        </a>
+    </div>
+</div>
+
+<div class="card shadow-sm mb-3">
+    <div class="card-body pb-2">
+        <form method="get" class="row g-2 align-items-end">
+            <div class="col-md-4">
+                <label class="form-label small fw-bold">Sản phẩm</label>
+                <select name="fruitId" class="form-select form-select-sm">
+                    <option value="">-- Tất cả --</option>
+                    @foreach (var item in (ViewBag.Fruits as Microsoft.AspNetCore.Mvc.Rendering.SelectList)!)
+                    {
+                        <option value="@item.Value" selected="@(item.Selected)">@item.Text</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label small fw-bold">Mã lô / Tên sản phẩm</label>
+                <input name="keyword" type="text" value="@ViewBag.Keyword" class="form-control form-control-sm" placeholder="Tìm kiếm..." />
+            </div>
+            <div class="col-md-4">
+                <button type="submit" class="btn btn-primary btn-sm me-1"><i class="fas fa-search me-1"></i>Lọc</button>
+                <a href="@Url.Action("Index")" class="btn btn-outline-secondary btn-sm">Reset</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0 align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Mã lô</th>
+                        <th>Sản phẩm</th>
+                        <th>Ngày nhập</th>
+                        <th>Hạn sử dụng</th>
+                        <th class="text-end">Giá nhập</th>
+                        <th class="text-center">SL nhập</th>
+                        <th class="text-center">Còn lại</th>
+                        <th class="text-center">Trạng thái</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var b in Model.Items)
+                    {
+                        var daysLeft = (b.ExpiryDate - DateTime.Now).Days;
+                        var rowClass = daysLeft <= 0 ? "table-danger" : (daysLeft <= 3 ? "table-warning" : "");
+                        <tr class="@rowClass">
+                            <td><code>@b.BatchCode</code></td>
+                            <td>@b.FruitName</td>
+                            <td>@b.ImportDate.ToString("dd/MM/yyyy")</td>
+                            <td>@b.ExpiryDate.ToString("dd/MM/yyyy")</td>
+                            <td class="text-end">@b.BuyPrice.ToString("N0")đ</td>
+                            <td class="text-center">@b.Quantity</td>
+                            <td class="text-center">@b.RemainingQty</td>
+                            <td class="text-center">
+                                @if (daysLeft <= 0)
+                                {
+                                    <span class="badge bg-danger">Hết hạn</span>
+                                }
+                                else if (daysLeft <= 3)
+                                {
+                                    <span class="badge bg-warning text-dark">Còn @daysLeft ngày</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-success">Còn @daysLeft ngày</span>
+                                }
+                            </td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <a href="@Url.Action("PrintReceipt", new { id = b.BatchId })" class="btn btn-outline-info" title="In phiếu nhập kho">
+                                        <i class="fas fa-print"></i>
+                                    </a>
+                                    <form method="post" action="@Url.Action("Delete", new { id = b.BatchId })" class="d-inline" onsubmit="return confirm('Xóa lô hàng này?')">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-outline-danger"><i class="fas fa-trash"></i></button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                    @if (!Model.Items.Any())
+                    {
+                        <tr><td colspan="9" class="text-center text-muted py-4">Không có lô hàng nào.</td></tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+    @if (Model.TotalPages > 1)
+    {
+        <div class="card-footer">
+            <nav><ul class="pagination pagination-sm mb-0 justify-content-center">
+                @for (int p = 1; p <= Model.TotalPages; p++)
+                {
+                    <li class="page-item @(p == Model.CurrentPage ? "active" : "")">
+                        <a class="page-link" href="@Url.Action("Index", new { fruitId = ViewBag.FruitId, keyword = ViewBag.Keyword, page = p })">@p</a>
+                    </li>
+                }
+            </ul></nav>
+        </div>
+    }
+</div>

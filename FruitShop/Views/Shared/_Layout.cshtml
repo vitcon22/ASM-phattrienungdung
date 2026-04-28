@@ -3,15 +3,12 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - FruitShop Admin</title>
-    <meta name="description" content="FruitShop - Hệ thống quản lý cửa hàng trái cây" />
-    <!-- Bootstrap 5 -->
+    <title>@(ViewData["Title"] ?? "Quản trị") - FruitShop Admin</title>
+    <meta name="description" content="Hệ thống quản lý nội bộ FruitShop" />
+    <meta name="robots" content="noindex, nofollow" />
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
-    <!-- Font Awesome 6 -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet" />
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
-    <!-- Custom CSS -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     @RenderSection("Styles", required: false)
 </head>
@@ -24,7 +21,7 @@
 <nav class="sidebar" id="sidebar">
     <div class="sidebar-header">
         <div class="sidebar-logo">
-            <i class="fas fa-apple-alt"></i>
+            <div class="logo-icon"><i class="fas fa-apple-alt"></i></div>
             <span>FruitShop</span>
         </div>
         <button class="sidebar-close d-lg-none" onclick="toggleSidebar()">
@@ -35,23 +32,17 @@
     <!-- User info -->
     <div class="sidebar-user">
         <div class="user-avatar">
-            <i class="fas fa-user-circle"></i>
+            <i class="fas fa-user"></i>
         </div>
         <div class="user-info">
             <div class="user-name">@(Context.Session.GetString("UserName") ?? "Người dùng")</div>
-            <div class="user-role badge">
-                @{
-                    var role = Context.Session.GetString("UserRole") ?? "";
-                    var roleBadge = role == "Admin" ? "badge-admin" : "badge-staff";
-                    var roleText  = role == "Admin" ? "Quản trị viên" : "Nhân viên";
-                }
-                <span class="badge @roleBadge">@roleText</span>
-            </div>
+            <div class="user-role-text">@(Context.Session.GetString("UserRole") == "Admin" ? "Quản trị viên" : "Nhân viên")</div>
         </div>
     </div>
 
+    <div class="sidebar-section-label">Quản lý</div>
     <ul class="sidebar-menu">
-        @if (role == "Admin")
+        @if (Context.Session.GetString("UserRole") == "Admin")
         {
         <li class="menu-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Dashboard" ? "active" : "")">
             <a asp-controller="Dashboard" asp-action="Index">
@@ -63,13 +54,19 @@
         <li class="menu-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Fruit" ? "active" : "")">
             <a asp-controller="Fruit" asp-action="Index">
                 <i class="fas fa-lemon"></i>
-                <span>Quản lý Trái cây</span>
+                <span>Trái cây</span>
             </a>
         </li>
         <li class="menu-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Category" ? "active" : "")">
             <a asp-controller="Category" asp-action="Index">
                 <i class="fas fa-tags"></i>
                 <span>Danh mục</span>
+            </a>
+        </li>
+        <li class="menu-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "AdminSupplier" ? "active" : "")">
+            <a asp-controller="AdminSupplier" asp-action="Index">
+                <i class="fas fa-truck"></i>
+                <span>Nhà cung cấp</span>
             </a>
         </li>
         <li class="menu-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Order" ? "active" : "")">
@@ -84,22 +81,47 @@
                 <span>Mã giảm giá</span>
             </a>
         </li>
+        <li class="menu-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Review" && ViewContext.RouteData.Values["action"]?.ToString() == "AdminIndex" ? "active" : "")">
+            <a asp-controller="Review" asp-action="AdminIndex">
+                <i class="fas fa-star"></i>
+                <span>Đánh giá</span>
+            </a>
+        </li>
         <li class="menu-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Inventory" ? "active" : "")">
             <a asp-controller="Inventory" asp-action="Index">
                 <i class="fas fa-boxes"></i>
                 <span>Tồn kho</span>
             </a>
         </li>
-        @if (role == "Admin")
-        {
-        <li class="menu-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "User" ? "active" : "")">
-            <a asp-controller="User" asp-action="Index">
-                <i class="fas fa-users"></i>
-                <span>Người dùng</span>
+        <li class="menu-item @(ViewContext.RouteData.Values["action"]?.ToString() == "CategoryReport" ? "active" : "")">
+            <a asp-controller="Dashboard" asp-action="CategoryReport">
+                <i class="fas fa-chart-pie"></i>
+                <span>Tồn kho theo DM</span>
             </a>
         </li>
-        }
-        <li class="menu-divider"></li>
+    </ul>
+
+    @if (Context.Session.GetString("UserRole") == "Admin")
+    {
+        <div class="sidebar-section-label">Hệ thống</div>
+        <ul class="sidebar-menu">
+            <li class="menu-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "User" ? "active" : "")">
+                <a asp-controller="User" asp-action="Index">
+                    <i class="fas fa-user-shield"></i>
+                    <span>Nhân sự & Quyền</span>
+                </a>
+            </li>
+            <li class="menu-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "AdminCustomer" ? "active" : "")">
+                <a asp-controller="AdminCustomer" asp-action="Index">
+                    <i class="fas fa-users"></i>
+                    <span>Khách hàng</span>
+                </a>
+            </li>
+        </ul>
+    }
+
+    <div class="sidebar-section-label">Khác</div>
+    <ul class="sidebar-menu">
         <li class="menu-item">
             <a asp-controller="Account" asp-action="Profile">
                 <i class="fas fa-user-edit"></i>
@@ -112,13 +134,15 @@
                 <span>Xem cửa hàng</span>
             </a>
         </li>
-        <li class="menu-item text-danger-menu">
-            <a asp-controller="Account" asp-action="Logout">
-                <i class="fas fa-sign-out-alt"></i>
-                <span>Đăng xuất</span>
-            </a>
-        </li>
     </ul>
+
+    <!-- Logout in sidebar footer -->
+    <div class="sidebar-footer">
+        <a asp-controller="Account" asp-action="Logout" style="color:#FCA5A5;">
+            <i class="fas fa-sign-out-alt"></i>
+            <span>Đăng xuất</span>
+        </a>
+    </div>
 </nav>
 
 <!-- MAIN CONTENT AREA -->
@@ -133,29 +157,40 @@
         <!-- Breadcrumb -->
         <nav aria-label="breadcrumb" class="d-none d-md-flex align-items-center">
             <ol class="breadcrumb mb-0">
-                <li class="breadcrumb-item"><a asp-controller="Dashboard" asp-action="Index">Home</a></li>
+                <li class="breadcrumb-item"><a asp-controller="Dashboard" asp-action="Index" style="color:var(--text-secondary);">Home</a></li>
                 @RenderSection("Breadcrumb", required: false)
             </ol>
         </nav>
 
         <div class="header-right">
             <span class="header-time d-none d-lg-block" id="headerTime"></span>
+            <!-- Notification -->
+            <button class="header-icon-btn" title="Thông báo">
+                <i class="fas fa-bell"></i>
+            </button>
+            <!-- User menu -->
             <div class="header-user dropdown">
-                <button class="btn btn-link dropdown-toggle" data-bs-toggle="dropdown">
-                    <i class="fas fa-user-circle"></i>
-                    @Context.Session.GetString("UserName")
+                <button class="btn btn-link dropdown-toggle d-flex align-items-center gap-2" data-bs-toggle="dropdown" style="text-decoration:none;color:var(--text-primary);">
+                    <span style="width:32px;height:32px;background:linear-gradient(135deg,#10B981,#06B6D4);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:0.85rem;">
+                        <i class="fas fa-user" style="font-size:0.8rem;"></i>
+                    </span>
+                    <span class="fw-semibold d-none d-md-inline" style="font-size:0.88rem;">@Context.Session.GetString("UserName")</span>
                 </button>
-                <ul class="dropdown-menu dropdown-menu-end shadow">
-                    <li><a class="dropdown-item" asp-controller="Account" asp-action="Profile">
+                <ul class="dropdown-menu dropdown-menu-end shadow-lg" style="border:none;border-radius:12px;padding:0.5rem;min-width:200px;">
+                    <li class="px-3 py-2" style="border-bottom:1px solid var(--border);">
+                        <small class="text-muted">@(Context.Session.GetString("UserRole") == "Admin" ? "Quản trị viên" : "Nhân viên")</small>
+                    </li>
+                    <li class="mt-1"><a class="dropdown-item" asp-controller="Account" asp-action="Profile" style="border-radius:8px;padding:0.6rem 0.9rem;">
                         <i class="fas fa-user-edit me-2 text-success"></i>Thông tin cá nhân
                     </a></li>
-                    <li><a class="dropdown-item" asp-controller="Home" asp-action="Index">
+                    <li><a class="dropdown-item" asp-controller="Home" asp-action="Index" style="border-radius:8px;padding:0.6rem 0.9rem;">
                         <i class="fas fa-store me-2 text-primary"></i>Xem cửa hàng
                     </a></li>
-                    <li><hr class="dropdown-divider"></li>
-                    <li><a class="dropdown-item text-danger" asp-controller="Account" asp-action="Logout">
-                        <i class="fas fa-sign-out-alt me-2"></i>Đăng xuất
-                    </a></li>
+                    <li class="mt-1" style="border-top:1px solid var(--border);padding-top:0.25rem;">
+                        <a class="dropdown-item text-danger" asp-controller="Account" asp-action="Logout" style="border-radius:8px;padding:0.6rem 0.9rem;">
+                            <i class="fas fa-sign-out-alt me-2"></i>Đăng xuất
+                        </a>
+                    </li>
                 </ul>
             </div>
         </div>
@@ -163,19 +198,18 @@
 
     <!-- PAGE CONTENT -->
     <main class="page-content">
-        <!-- Alert messages -->
         @if (TempData["Success"] != null)
         {
-            <div class="alert alert-success alert-dismissible fade show" role="alert">
-                <i class="fas fa-check-circle me-2"></i>@TempData["Success"]
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            <div class="alert alert-success d-flex align-items-center gap-2 animate-fade-in-up" role="alert" style="border-radius:12px;border:none;padding:1rem 1.25rem;background:var(--primary-pale);color:#065F46;">
+                <i class="fas fa-check-circle" style="font-size:1.1rem;"></i>@TempData["Success"]
+                <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" style="opacity:0.5;"></button>
             </div>
         }
         @if (TempData["Error"] != null)
         {
-            <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                <i class="fas fa-exclamation-circle me-2"></i>@TempData["Error"]
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            <div class="alert alert-danger d-flex align-items-center gap-2 animate-fade-in-up" role="alert" style="border-radius:12px;border:none;padding:1rem 1.25rem;background:#FEE2E2;color:#991B1B;">
+                <i class="fas fa-exclamation-circle" style="font-size:1.1rem;"></i>@TempData["Error"]
+                <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" style="opacity:0.5;"></button>
             </div>
         }
 
@@ -183,24 +217,21 @@
     </main>
 
     <footer class="admin-footer">
-        <span>&copy; @DateTime.Now.Year FruitShop - Hệ thống quản lý cửa hàng trái cây</span>
+        <span>&copy; @DateTime.Now.Year FruitShop — Hệ thống quản lý cửa hàng trái cây</span>
     </footer>
 </div>
 
-<!-- Bootstrap 5 JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-<!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-<!-- Custom JS -->
 <script src="~/js/site.js" asp-append-version="true"></script>
 <script>
-    // Hiển thị giờ thực tế trên header
     function updateTime() {
         const now = new Date();
         document.getElementById('headerTime').textContent =
             now.toLocaleString('vi-VN', { weekday: 'short', day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
     }
-    updateTime(); setInterval(updateTime, 1000);
+    updateTime();
+    setInterval(updateTime, 1000);
 </script>
 @RenderSection("Scripts", required: false)
 </body>

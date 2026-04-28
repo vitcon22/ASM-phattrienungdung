@@ -5,14 +5,19 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - FruitShop</title>
-    <meta name="description" content="FruitShop - Cửa hàng trái cây tươi ngon nhất" />
+    <title>@(ViewData["Title"] ?? "Trái cây tươi ngon") - FruitShop</title>
+    <meta name="description" content="@(ViewData["MetaDescription"] ?? "FruitShop - Cửa hàng cung cấp trái cây sạch, tươi ngon, nhập khẩu và nội địa chất lượng cao hàng đầu.")" />
+    <meta name="keywords" content="@(ViewData["MetaKeywords"] ?? "trái cây sạch, trái cây nhập khẩu, hoa quả tươi, fruitshop, trái cây hữu cơ")" />
+    <meta name="author" content="FruitShop Team" />
+    <meta property="og:title" content="@(ViewData["Title"] ?? "FruitShop")" />
+    <meta property="og:description" content="@(ViewData["MetaDescription"] ?? "Trái cây tươi ngon mỗi ngày")" />
+    <meta property="og:type" content="website" />
     <!-- Bootstrap 5 -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
     <!-- Font Awesome 6 -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet" />
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     @RenderSection("Styles", required: false)
 </head>
@@ -23,7 +28,7 @@
     var sessionName = Context.Session.GetString("UserName") ?? "";
 }
 
-<!-- ADMIN TOOLBAR (chỉ hiển thị khi Admin/Staff xem store) -->
+<!-- ADMIN TOOLBAR -->
 @if (sessionRole == "Admin" || sessionRole == "Staff")
 {
     <div class="admin-topbar">
@@ -33,27 +38,20 @@
                     <i class="fas fa-shield-alt me-1"></i>
                     @(sessionRole == "Admin" ? "Admin" : "Staff"): @sessionName
                 </span>
-                <span class="text-white-50 d-none d-md-inline">| Đang xem giao diện khách hàng</span>
+                <span class="d-none d-md-inline" style="color:rgba(255,255,255,0.3)">| Đang xem giao diện khách hàng</span>
             </div>
             <div class="d-flex align-items-center gap-2">
                 @if (sessionRole == "Admin")
                 {
-                    <a asp-controller="Dashboard" asp-action="Index"
-                       class="btn btn-sm btn-admin-topbar">
+                    <a asp-controller="Dashboard" asp-action="Index" class="btn btn-sm btn-admin-topbar">
                         <i class="fas fa-chart-line me-1"></i>Dashboard
                     </a>
                 }
-                <a asp-controller="Fruit" asp-action="Index"
-                   class="btn btn-sm btn-admin-topbar">
+                <a asp-controller="Fruit" asp-action="Index" class="btn btn-sm btn-admin-topbar">
                     <i class="fas fa-lemon me-1"></i>Trái cây
                 </a>
-                <a asp-controller="Order" asp-action="Index"
-                   class="btn btn-sm btn-admin-topbar">
+                <a asp-controller="Order" asp-action="Index" class="btn btn-sm btn-admin-topbar">
                     <i class="fas fa-bag-shopping me-1"></i>Đơn hàng
-                </a>
-                <a asp-controller="Category" asp-action="Index"
-                   class="btn btn-sm btn-admin-topbar">
-                    <i class="fas fa-tags me-1"></i>Danh mục
                 </a>
             </div>
         </div>
@@ -63,51 +61,52 @@
 <!-- NAVBAR -->
 <nav class="navbar navbar-expand-lg user-navbar sticky-top">
     <div class="container">
+        <!-- Brand -->
         <a class="navbar-brand" asp-controller="Home" asp-action="Index">
-            <i class="fas fa-apple-alt me-2"></i>
+            <span class="brand-icon"><i class="fas fa-apple-alt"></i></span>
             <span>FruitShop</span>
         </a>
 
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
-            <span class="navbar-toggler-icon"></span>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu"
+                style="border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; padding: 0.4rem 0.6rem;">
+            <span style="color: #fff; font-size: 1.1rem;"><i class="fas fa-bars"></i></span>
         </button>
 
         <div class="collapse navbar-collapse" id="navMenu">
+            <!-- Nav Links -->
             <ul class="navbar-nav me-auto">
                 <li class="nav-item">
-                    <a class="nav-link" asp-controller="Home" asp-action="Index">
+                    <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Home" && ViewContext.RouteData.Values["action"]?.ToString() == "Index" ? "active" : "")"
+                       asp-controller="Home" asp-action="Index">
                         <i class="fas fa-home me-1"></i>Trang chủ
                     </a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" asp-controller="Home" asp-action="Index" asp-route-categoryId="1">
-                        Nhập khẩu
+                        <i class="fas fa-globe-americas me-1"></i>Nhập khẩu
                     </a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" asp-controller="Home" asp-action="Index" asp-route-categoryId="2">
-                        Nội địa
+                        <i class="fas fa-leaf me-1"></i>Nội địa
                     </a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" asp-controller="Home" asp-action="Index" asp-route-categoryId="5">
-                        Hữu cơ
+                        <i class="fas fa-seedling me-1"></i>Hữu cơ
                     </a>
                 </li>
             </ul>
 
             <!-- Search Form -->
             <form class="d-flex me-3 search-form" asp-controller="Home" asp-action="Index" method="get">
-                <div class="input-group">
-                    <input type="text" name="keyword" class="form-control search-input"
-                           placeholder="Tìm kiếm trái cây..."
-                           value="@ViewBag.Keyword"
-                           id="searchInput" autocomplete="off" />
-                    <button class="btn btn-search" type="submit">
-                        <i class="fas fa-search"></i>
-                    </button>
-                </div>
-                <!-- Autocomplete dropdown -->
+                <input type="text" name="keyword" class="form-control search-input"
+                       placeholder="Tìm kiếm trái cây..."
+                       value="@ViewBag.Keyword"
+                       id="searchInput" autocomplete="off" />
+                <button class="btn btn-search" type="submit">
+                    <i class="fas fa-search"></i>
+                </button>
                 <div class="autocomplete-dropdown" id="autocompleteList"></div>
             </form>
 
@@ -130,42 +129,54 @@
                 @if (SessionHelper.IsLoggedIn(Context.Session))
                 {
                 <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle user-menu-btn" data-bs-toggle="dropdown" href="#">
-                        <i class="fas fa-user-circle me-1"></i>
-                        @Context.Session.GetString("UserName")
+                    <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#" role="button">
+                        <span style="display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;background:linear-gradient(135deg,#10B981,#06B6D4);border-radius:8px;font-size:0.8rem;">
+                            <i class="fas fa-user" style="color:#fff;"></i>
+                        </span>
+                        <span class="d-none d-md-inline" style="margin-left:0.5rem;">@Context.Session.GetString("UserName")</span>
                     </a>
-                    <ul class="dropdown-menu dropdown-menu-end shadow">
-                        <li class="dropdown-header">
+                    <ul class="dropdown-menu dropdown-menu-end shadow-lg" style="border:none;border-radius:12px;padding:0.5rem;min-width:200px;">
+                        <li class="px-3 py-2" style="border-bottom:1px solid var(--border);">
                             <small class="text-muted">@(sessionRole == "Admin" ? "Quản trị viên" : sessionRole == "Staff" ? "Nhân viên" : "Khách hàng")</small>
                         </li>
-                        <li><hr class="dropdown-divider my-1"></li>
-                        <li><a class="dropdown-item" asp-controller="Account" asp-action="Profile">
+                        <li class="mt-1"><a class="dropdown-item" asp-controller="Account" asp-action="Profile" style="border-radius:8px;padding:0.6rem 0.9rem;">
                             <i class="fas fa-user-edit me-2 text-success"></i>Thông tin cá nhân
                         </a></li>
-                        <li><a class="dropdown-item" asp-controller="Order" asp-action="History">
-                            <i class="fas fa-history me-2 text-primary"></i>Đơn hàng của tôi
+                        <li><a class="dropdown-item" asp-controller="Order" asp-action="History" style="border-radius:8px;padding:0.6rem 0.9rem;">
+                            <i class="fas fa-box-open me-2 text-primary"></i>Đơn hàng của tôi
+                        </a></li>
+                        <li><a class="dropdown-item" asp-controller="Wishlist" asp-action="Index" style="border-radius:8px;padding:0.6rem 0.9rem;">
+                            <i class="fas fa-heart me-2 text-danger"></i>Yêu thích
                         </a></li>
                         @if (sessionRole == "Admin" || sessionRole == "Staff")
                         {
-                        <li><hr class="dropdown-divider my-1"></li>
-                        <li><a class="dropdown-item text-success fw-semibold" asp-controller="Dashboard" asp-action="Index">
-                            <i class="fas fa-tachometer-alt me-2"></i>← Về trang quản trị
-                        </a></li>
+                        <li class="mt-1" style="border-top:1px solid var(--border);padding-top:0.25rem;">
+                            <a class="dropdown-item" asp-controller="Dashboard" asp-action="Index" style="border-radius:8px;padding:0.6rem 0.9rem;color:var(--primary);font-weight:600;">
+                                <i class="fas fa-tachometer-alt me-2"></i>Về trang quản trị
+                            </a>
+                        </li>
                         }
-                        <li><hr class="dropdown-divider my-1"></li>
-                        <li><a class="dropdown-item text-danger" asp-controller="Account" asp-action="Logout">
-                            <i class="fas fa-sign-out-alt me-2"></i>Đăng xuất
-                        </a></li>
+                        <li class="mt-1" style="border-top:1px solid var(--border);padding-top:0.25rem;">
+                            <a class="dropdown-item text-danger" asp-controller="Account" asp-action="Logout" style="border-radius:8px;padding:0.6rem 0.9rem;">
+                                <i class="fas fa-sign-out-alt me-2"></i>Đăng xuất
+                            </a>
+                        </li>
                     </ul>
                 </li>
                 }
                 else
                 {
                 <li class="nav-item">
-                    <a class="btn btn-outline-light btn-sm me-2" asp-controller="Account" asp-action="Login">Đăng nhập</a>
+                    <a class="btn btn-outline-light btn-sm me-2" asp-controller="Account" asp-action="Login"
+                       style="border-radius:10px;font-weight:600;">
+                        Đăng nhập
+                    </a>
                 </li>
                 <li class="nav-item">
-                    <a class="btn btn-light btn-sm" asp-controller="Account" asp-action="Register">Đăng ký</a>
+                    <a class="btn btn-success btn-sm" asp-controller="Account" asp-action="Register"
+                       style="border-radius:10px;font-weight:600;padding:0.45rem 1.1rem;">
+                        Đăng ký
+                    </a>
                 </li>
                 }
             </ul>
@@ -178,18 +189,18 @@
     @if (TempData["Success"] != null)
     {
         <div class="container mt-3">
-            <div class="alert alert-success alert-dismissible fade show">
-                <i class="fas fa-check-circle me-2"></i>@TempData["Success"]
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            <div class="alert alert-success d-flex align-items-center gap-2" style="border-radius:12px;border:none;padding:1rem 1.25rem;background:var(--primary-pale);color:#065F46;">
+                <i class="fas fa-check-circle" style="font-size:1.2rem;"></i>@TempData["Success"]
+                <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" style="opacity:0.5;"></button>
             </div>
         </div>
     }
     @if (TempData["Error"] != null)
     {
         <div class="container mt-3">
-            <div class="alert alert-danger alert-dismissible fade show">
-                <i class="fas fa-exclamation-circle me-2"></i>@TempData["Error"]
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            <div class="alert alert-danger d-flex align-items-center gap-2" style="border-radius:12px;border:none;padding:1rem 1.25rem;background:#FEE2E2;color:#991B1B;">
+                <i class="fas fa-exclamation-circle" style="font-size:1.2rem;"></i>@TempData["Error"]
+                <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" style="opacity:0.5;"></button>
             </div>
         </div>
     }
@@ -200,33 +211,76 @@
 <!-- FOOTER -->
 <footer class="user-footer mt-5">
     <div class="container">
-        <div class="row">
-            <div class="col-md-4 mb-3">
-                <h5><i class="fas fa-apple-alt me-2"></i>FruitShop</h5>
-                <p class="text-muted small">Cửa hàng trái cây tươi ngon, nhập khẩu và nội địa chất lượng cao.</p>
+        <div class="row g-4 mb-4">
+            <div class="col-lg-4 col-md-6">
+                <div class="d-flex align-items-center gap-3 mb-3">
+                    <div class="footer-brand-icon"><i class="fas fa-apple-alt" style="color:#fff;"></i></div>
+                    <h5 class="mb-0" style="font-weight:800;letter-spacing:-0.02em;">FruitShop</h5>
+                </div>
+                <p class="small" style="color:rgba(255,255,255,0.5);line-height:1.7;">
+                    Cửa hàng trái cây tươi ngon hàng đầu Việt Nam. Hơn 100+ loại trái cây nhập khẩu và nội địa chất lượng cao, giao hàng tận nơi trong 24h.
+                </p>
+                <div class="d-flex gap-2 mt-3">
+                    <a href="#" class="footer-social-btn" style="width:36px;height:36px;background:rgba(255,255,255,0.08);border-radius:10px;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.6);transition:var(--transition);">
+                        <i class="fab fa-facebook-f"></i>
+                    </a>
+                    <a href="#" class="footer-social-btn" style="width:36px;height:36px;background:rgba(255,255,255,0.08);border-radius:10px;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.6);transition:var(--transition);">
+                        <i class="fab fa-instagram"></i>
+                    </a>
+                    <a href="#" class="footer-social-btn" style="width:36px;height:36px;background:rgba(255,255,255,0.08);border-radius:10px;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.6);transition:var(--transition);">
+                        <i class="fab fa-youtube"></i>
+                    </a>
+                </div>
             </div>
-            <div class="col-md-4 mb-3">
-                <h6>Danh mục</h6>
-                <ul class="list-unstyled small">
-                    <li><a href="#" class="text-muted text-decoration-none">Trái cây nhập khẩu</a></li>
-                    <li><a href="#" class="text-muted text-decoration-none">Trái cây nội địa</a></li>
-                    <li><a href="#" class="text-muted text-decoration-none">Trái cây hữu cơ</a></li>
-                    <li><a href="#" class="text-muted text-decoration-none">Trái cây sấy khô</a></li>
+            <div class="col-lg-2 col-md-6">
+                <h6 style="font-size:0.9rem;font-weight:700;margin-bottom:1rem;">Danh mục</h6>
+                <ul class="list-unstyled" style="display:flex;flex-direction:column;gap:0.5rem;">
+                    <li><a class="footer-link" href="#"><i class="fas fa-chevron-right" style="font-size:0.6rem;"></i>Trái cây nhập khẩu</a></li>
+                    <li><a class="footer-link" href="#"><i class="fas fa-chevron-right" style="font-size:0.6rem;"></i>Trái cây nội địa</a></li>
+                    <li><a class="footer-link" href="#"><i class="fas fa-chevron-right" style="font-size:0.6rem;"></i>Trái cây hữu cơ</a></li>
+                    <li><a class="footer-link" href="#"><i class="fas fa-chevron-right" style="font-size:0.6rem;"></i>Trái cây sấy khô</a></li>
                 </ul>
             </div>
-            <div class="col-md-4 mb-3">
-                <h6>Liên hệ</h6>
-                <ul class="list-unstyled small text-muted">
-                    <li><i class="fas fa-phone me-2"></i>0901 234 567</li>
-                    <li><i class="fas fa-envelope me-2"></i>info@fruitshop.vn</li>
-                    <li><i class="fas fa-map-marker-alt me-2"></i>123 Lê Lợi, Q.1, TP.HCM</li>
+            <div class="col-lg-3 col-md-6">
+                <h6 style="font-size:0.9rem;font-weight:700;margin-bottom:1rem;">Liên kết</h6>
+                <ul class="list-unstyled" style="display:flex;flex-direction:column;gap:0.5rem;">
+                    <li><a class="footer-link" href="#"><i class="fas fa-chevron-right" style="font-size:0.6rem;"></i>Về chúng tôi</a></li>
+                    <li><a class="footer-link" href="#"><i class="fas fa-chevron-right" style="font-size:0.6rem;"></i>Chính sách giao hàng</a></li>
+                    <li><a class="footer-link" href="#"><i class="fas fa-chevron-right" style="font-size:0.6rem;"></i>Chính sách đổi trả</a></li>
+                    <li><a class="footer-link" href="#"><i class="fas fa-chevron-right" style="font-size:0.6rem;"></i>Hướng dẫn mua hàng</a></li>
+                </ul>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <h6 style="font-size:0.9rem;font-weight:700;margin-bottom:1rem;">Liên hệ</h6>
+                <ul class="list-unstyled" style="display:flex;flex-direction:column;gap:0.75rem;">
+                    <li class="d-flex align-items-center gap-2" style="color:rgba(255,255,255,0.5);font-size:0.85rem;">
+                        <i class="fas fa-map-marker-alt" style="color:var(--primary-light);width:16px;"></i>
+                        123 Lê Lợi, Q.1, TP.HCM
+                    </li>
+                    <li class="d-flex align-items-center gap-2" style="color:rgba(255,255,255,0.5);font-size:0.85rem;">
+                        <i class="fas fa-phone" style="color:var(--primary-light);width:16px;"></i>
+                        0901 234 567
+                    </li>
+                    <li class="d-flex align-items-center gap-2" style="color:rgba(255,255,255,0.5);font-size:0.85rem;">
+                        <i class="fas fa-envelope" style="color:var(--primary-light);width:16px;"></i>
+                        info@fruitshop.vn
+                    </li>
+                    <li class="d-flex align-items-center gap-2" style="color:rgba(255,255,255,0.5);font-size:0.85rem;">
+                        <i class="fas fa-clock" style="color:var(--primary-light);width:16px;"></i>
+                        7:00 - 21:00, T2-CN
+                    </li>
                 </ul>
             </div>
         </div>
-        <hr />
-        <p class="text-center text-muted small mb-0">
-            &copy; @DateTime.Now.Year FruitShop. Design with <i class="fas fa-heart text-danger"></i>
-        </p>
+        <hr style="border-color:rgba(255,255,255,0.08);" />
+        <div class="d-flex flex-column flex-md-row align-items-center justify-content-between gap-2 pb-2">
+            <p class="mb-0 small" style="color:rgba(255,255,255,0.35);">
+                &copy; @DateTime.Now.Year FruitShop. All rights reserved.
+            </p>
+            <p class="mb-0 small" style="color:rgba(255,255,255,0.35);">
+                Designed with <i class="fas fa-heart" style="color:#EF4444;"></i> in Vietnam
+            </p>
+        </div>
     </div>
 </footer>
 

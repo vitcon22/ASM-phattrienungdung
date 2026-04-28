@@ -1,0 +1,81 @@
+@model FruitShop.Models.Entities.Review
+@{
+    ViewData["Title"] = "Sửa đánh giá";
+    Layout = "_LayoutUser";
+}
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-7">
+            <div class="page-header animate-fade-in-up mb-4">
+                <h1 class="page-header-title">
+                    <i class="fas fa-star me-2" style="color:var(--primary);"></i>Sửa đánh giá
+                </h1>
+                <p class="page-header-subtitle mb-0">Cập nhật đánh giá của bạn về sản phẩm</p>
+            </div>
+
+            <div class="card animate-fade-in-up">
+                <div class="card-body">
+                    <form asp-action="Edit" method="post" enctype="multipart/form-data">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="id" value="@Model.ReviewId" />
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Đánh giá của bạn</label>
+                            <div class="star-rating-edit d-flex gap-1 mb-3" id="starRatingEdit">
+                                @for (int i = 1; i <= 5; i++)
+                                {
+                                    <span class="star @(i <= Model.Rating ? "selected" : "")"
+                                          data-value="@i" onclick="setRating(@i)">
+                                        <i class="fas fa-star"></i>
+                                    </span>
+                                }
+                            </div>
+                            <input type="hidden" name="rating" id="ratingValue" value="@Model.Rating" />
+                            <div class="small text-muted">Click vào sao để chọn đánh giá (1-5 sao)</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Nhận xét của bạn</label>
+                            <textarea name="comment" class="form-control" rows="4"
+                                      placeholder="Chia sẻ trải nghiệm của bạn về sản phẩm...">@Model.Comment</textarea>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Hình ảnh (tối đa 3)</label>
+                            <input type="file" name="images" class="form-control" accept="image/*" multiple />
+                            <div class="form-text">Hình ảnh mới sẽ thay thế hình ảnh cũ</div>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <a asp-controller="Fruit" asp-action="Details" asp-route-id="@Model.FruitId"
+                               class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-1"></i>Quay lại
+                            </a>
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-save me-1"></i>Lưu thay đổi
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .star-rating-edit .star { font-size: 1.8rem; cursor: pointer; color: #ccc; transition: color 0.2s; }
+    .star-rating-edit .star.selected { color: #f59e0b; }
+    .star-rating-edit .star:hover,
+    .star-rating-edit .star:hover ~ .star { color: #fbbf24; }
+    .star-rating-edit .star:hover { color: #f59e0b; }
+</style>
+
+<script>
+    function setRating(val) {
+        document.getElementById('ratingValue').value = val;
+        document.querySelectorAll('.star-rating-edit .star').forEach(function(s, i) {
+            s.classList.toggle('selected', i < val);
+        });
+    }
+</script>

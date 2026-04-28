@@ -1,0 +1,43 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python -c 'from openpyxl import load_workbook; wb=load_workbook\\('\\\\''Product_Backlog_v2.xlsx'\\\\''\\); *)",
+      "Bash(mkdir -p /tmp/xlsx)",
+      "Bash(unzip -o Product_Backlog_v2.xlsx -d /tmp/xlsx)",
+      "Read(//tmp/xlsx/**)",
+      "Bash(wc -c /tmp/xlsx/xl/sharedStrings.xml /tmp/xlsx/xl/worksheets/*.xml)",
+      "Bash(cp /tmp/xlsx/xl/sharedStrings.xml \"d:/ASM phattrienungdung/_ss.xml\")",
+      "Bash(cp /tmp/xlsx/xl/worksheets/sheet1.xml \"d:/ASM phattrienungdung/_sh1.xml\")",
+      "Bash(cp /tmp/xlsx/xl/workbook.xml \"d:/ASM phattrienungdung/_wb.xml\")",
+      "Bash(grep -l \"public.*Action\" Controllers/*.cs)",
+      "Bash(dotnet build *)",
+      "Bash(wc -l Controllers/*.cs Models/Entities/*.cs Models/DAL/*.cs Models/ViewModels/*.cs Helpers/*.cs Middleware/*.cs Filters/*.cs)",
+      "Bash(find FruitShop/Models/DAL -name \"FruitShopContext*\" -exec cat {} \\\\;)",
+      "Bash(dotnet add *)",
+      "Bash(where dotnet *)",
+      "Bash(dotnet --version)",
+      "Bash(dotnet list *)",
+      "Bash(python -c ' *)",
+      "PowerShell(Add-Type -AssemblyName System.IO.Compression.FileSystem; $zip = [System.IO.Compression.ZipFile]::OpenRead\\('d:\\\\ASM phattrienungdung\\\\Product_Backlog_v2111.xlsx'\\); $zip.Entries | ForEach-Object { Write-Output $_.FullName }; $zip.Dispose\\(\\))",
+      "PowerShell($tmp = \"$env:TEMP\\\\xlsx_extract_$\\(Get-Random\\)\"; New-Item -ItemType Directory -Path $tmp | Out-Null; Add-Type -AssemblyName System.IO.Compression.FileSystem; [System.IO.Compression.ZipFile]::ExtractToDirectory\\('d:\\\\ASM phattrienungdung\\\\Product_Backlog_v2111.xlsx', $tmp\\); Write-Output $tmp)",
+      "Read(//c/Users/Vietn/AppData/Local/Temp/xlsx_extract_356711333/xl/**)",
+      "PowerShell($x = Get-Content -Raw 'C:\\\\Users\\\\Vietn\\\\AppData\\\\Local\\\\Temp\\\\xlsx_extract_356711333\\\\xl\\\\worksheets\\\\sheet1.xml'; $x.Substring\\(0, [Math]::Min\\(5000, $x.Length\\)\\))",
+      "PowerShell($x = Get-Content -Raw 'C:\\\\Users\\\\Vietn\\\\AppData\\\\Local\\\\Temp\\\\xlsx_extract_356711333\\\\xl\\\\worksheets\\\\sheet1.xml'; \"Length: $\\($x.Length\\)\"; \"Looking for any t='s' cells...\"; \\($x -split '<c ' | Where-Object { $_ -match 't=\"s\"' }\\).Count; \"Cell count with shared string ref\")",
+      "PowerShell($s1 = Get-Content -Raw 'C:\\\\Users\\\\Vietn\\\\AppData\\\\Local\\\\Temp\\\\xlsx_extract_356711333\\\\xl\\\\worksheets\\\\sheet1.xml'; $s2 = Get-Content -Raw 'C:\\\\Users\\\\Vietn\\\\AppData\\\\Local\\\\Temp\\\\xlsx_extract_356711333\\\\xl\\\\worksheets\\\\sheet2.xml'; $s3 = Get-Content -Raw 'C:\\\\Users\\\\Vietn\\\\AppData\\\\Local\\\\Temp\\\\xlsx_extract_356711333\\\\xl\\\\worksheets\\\\sheet3.xml'; \"Sheet1 string cells: $\\(\\($s1 -split '<c ' | Where-Object { $_ -match 't=.s.' }\\).Count\\)\"; \"Sheet2 string cells: $\\(\\($s2 -split '<c ' | Where-Object { $_ -match 't=.s.' }\\).Count\\)\"; \"Sheet3 string cells: $\\(\\($s3 -split '<c ' | Where-Object { $_ -match 't=.s.' }\\).Count\\)\")",
+      "Bash(\"C:/Users/Vietn/AppData/Local/Microsoft/WindowsApps/python3.exe\" --version)",
+      "PowerShell(& 'd:\\\\ASM phattrienungdung\\\\build_backlog.ps1')",
+      "PowerShell(powershell -ExecutionPolicy Bypass -File 'd:\\\\ASM phattrienungdung\\\\build_backlog.ps1')",
+      "Bash(where pwsh *)",
+      "PowerShell($utf8Bom = New-Object System.Text.UTF8Encoding\\($true\\); $content = [System.IO.File]::ReadAllText\\('d:\\\\ASM phattrienungdung\\\\build_backlog.ps1', \\(New-Object System.Text.UTF8Encoding\\($false\\)\\)\\); [System.IO.File]::WriteAllText\\('d:\\\\ASM phattrienungdung\\\\build_backlog.ps1', $content, $utf8Bom\\); \"rewrote with BOM\")",
+      "PowerShell($tmp = \"$env:TEMP\\\\verify_$\\(Get-Random\\)\"; Add-Type -AssemblyName System.IO.Compression.FileSystem; [System.IO.Compression.ZipFile]::ExtractToDirectory\\('d:\\\\ASM phattrienungdung\\\\Product_Backlog_v2111.xlsx', $tmp\\); Get-ChildItem -Recurse $tmp | Select-Object FullName, Length)",
+      "PowerShell($tmp = \"$env:TEMP\\\\verify_$\\([guid]::NewGuid\\(\\).ToString\\('N'\\)\\)\"; Add-Type -AssemblyName System.IO.Compression.FileSystem; [System.IO.Compression.ZipFile]::ExtractToDirectory\\('d:\\\\ASM phattrienungdung\\\\Product_Backlog_v2111.xlsx', $tmp\\); Get-ChildItem -Recurse $tmp -File | ForEach-Object { \"$\\($_.FullName.Substring\\($tmp.Length+1\\)\\): $\\($_.Length\\)\" }; Write-Output \"tmp=$tmp\")",
+      "PowerShell($d='C:\\\\Users\\\\Vietn\\\\AppData\\\\Local\\\\Temp\\\\verify_ac7f4b64f9ef4f8a97e93fcf62bbc69c'; \"===Content_Types===\"; Get-Content \"$d\\\\[Content_Types].xml\" -Raw -Encoding UTF8; \"===\"; \"===rels===\"; Get-Content \"$d\\\\xl\\\\_rels\\\\workbook.xml.rels\" -Raw -Encoding UTF8)",
+      "PowerShell($utf8Bom = New-Object System.Text.UTF8Encoding\\($true\\); $content = [System.IO.File]::ReadAllText\\('d:\\\\ASM phattrienungdung\\\\build_backlog.ps1', \\(New-Object System.Text.UTF8Encoding\\($true\\)\\)\\); [System.IO.File]::WriteAllText\\('d:\\\\ASM phattrienungdung\\\\build_backlog.ps1', $content, $utf8Bom\\); powershell -ExecutionPolicy Bypass -File 'd:\\\\ASM phattrienungdung\\\\build_backlog.ps1')",
+      "PowerShell($tmp = \"$env:TEMP\\\\verify2_$\\([guid]::NewGuid\\(\\).ToString\\('N'\\)\\)\"; Add-Type -AssemblyName System.IO.Compression.FileSystem; [System.IO.Compression.ZipFile]::ExtractToDirectory\\('d:\\\\ASM phattrienungdung\\\\Product_Backlog_v2111.xlsx', $tmp\\); \"===Content_Types===\"; Get-Content \"$tmp\\\\[Content_Types].xml\" -Encoding UTF8; \"===Workbook rels===\"; Get-Content \"$tmp\\\\xl\\\\_rels\\\\workbook.xml.rels\" -Encoding UTF8; \"===Sheet1 head===\"; \\(Get-Content \"$tmp\\\\xl\\\\worksheets\\\\sheet1.xml\" -Encoding UTF8 -TotalCount 1\\).Substring\\(0, [Math]::Min\\(2000, \\(Get-Content \"$tmp\\\\xl\\\\worksheets\\\\sheet1.xml\" -Encoding UTF8 -TotalCount 1\\).Length\\)\\))",
+      "PowerShell($utf8Bom = New-Object System.Text.UTF8Encoding\\($true\\); $content = [System.IO.File]::ReadAllText\\('d:\\\\ASM phattrienungdung\\\\build_backlog.ps1', $utf8Bom\\); [System.IO.File]::WriteAllText\\('d:\\\\ASM phattrienungdung\\\\build_backlog.ps1', $content, $utf8Bom\\); powershell -ExecutionPolicy Bypass -File 'd:\\\\ASM phattrienungdung\\\\build_backlog.ps1')",
+      "PowerShell(Get-Process | Where-Object { $_.Name -match 'EXCEL|excel' } | Select-Object Id, Name, MainWindowTitle)",
+      "Bash(grep -i 'lock\\\\|~$Product')",
+      "PowerShell(powershell -ExecutionPolicy Bypass -File \"d:\\\\ASM phattrienungdung\\\\build_backlog.ps1\" 2>&1)"
+    ]
+  }
+}
